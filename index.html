@@ -33,8 +33,8 @@
   
   <main class="container">
     <div class="section-header">
-      <h2>Upload MRI Scan</h2>
-      <p>Drag and drop your MRI image or click to browse. Supports DICOM, PNG, and JPG formats.</p>
+      <h2>Pancreatic Tumor Analysis</h2>
+      <p>Upload MRI scan for comprehensive pancreatic tumor characterization.</p>
     </div>
     
     <div class="card">
@@ -52,7 +52,28 @@
       <img id="imagePreview" class="image-preview hidden" alt="MRI Preview">
       
       <div id="analysisSection" class="hidden">
-        <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">Analysis Results</h3>
+        
+        <h3 class="analysis-section-title">Parametric Maps</h3>
+        <div class="parametric-grid" id="parametricMaps"></div>
+        
+        <h3 class="analysis-section-title">Persistence Diagrams</h3>
+        <div class="persistence-container" id="persistenceDiagram"></div>
+        
+        <h3 class="analysis-section-title">Tumor Morphology</h3>
+        <div class="morphology-grid" id="morphologyGrid"></div>
+        
+        <h3 class="analysis-section-title">Surgical Metrics</h3>
+        <div class="surgical-grid" id="surgicalMetrics"></div>
+        
+        <h3 class="analysis-section-title">Molecular Phenotype</h3>
+        <div class="molecular-container" id="molecularPhenotype"></div>
+        
+        <h3 class="analysis-section-title">Overall Confidence</h3>
+        <div class="confidence-section" id="confidenceSection"></div>
+        
+        <div style="margin-top: 2rem; text-align: center;">
+          <button class="btn btn-primary" onclick="resetUpload()">Upload New Image</button>
+        </div>
       </div>
     </div>
     

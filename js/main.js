@@ -89,28 +89,220 @@ function initUploadZone() {
 function displayStaticAnalysis() {
   const analysisSection = document.getElementById('analysisSection');
   
-  const results = [
-    { label: 'Scan Type', value: 'MRI Brain', status: 'normal' },
-    { label: 'Tissue Density', value: '1.04 g/cm³', status: 'normal' },
-    { label: 'Abnormality Score', value: '12%', status: 'normal' },
-    { label: 'Confidence Level', value: '94.2%', status: 'normal' },
-    { label: 'Processing Time', value: '0.8s', status: 'normal' },
-    { label: 'Region of Interest', value: 'Frontal Lobe', status: 'normal' }
+  const parametricData = [
+    { label: 'T1', value: 65, valueLabel: '0.65' },
+    { label: 'T2', value: 82, valueLabel: '0.82' },
+    { label: 'ADC', value: 45, valueLabel: '0.45' },
+    { label: 'DWI', value: 73, valueLabel: '0.73' },
+    { label: 'DCE', value: 58, valueLabel: '0.58' },
+    { label: 'FLAIR', value: 91, valueLabel: '0.91' }
+  ];
+  
+  const persistenceData = [
+    { x: 12, y: 45, type: 'tumor', label: 'T1' },
+    { x: 25, y: 38, type: 'tumor', label: 'T2' },
+    { x: 38, y: 52, type: 'tumor', label: 'T3' },
+    { x: 45, y: 28, type: 'necrosis', label: 'N1' },
+    { x: 55, y: 65, type: 'tumor', label: 'T4' },
+    { x: 62, y: 22, type: 'necrosis', label: 'N2' },
+    { x: 70, y: 48, type: 'tumor', label: 'T5' },
+    { x: 78, y: 35, type: 'tumor', label: 'T6' },
+    { x: 85, y: 58, type: 'tumor', label: 'T7' }
+  ];
+  
+  const morphologyData = [
+    { 
+      title: 'Volume', 
+      value: '24.8 cm³', 
+      percent: 74,
+      color: 'var(--primary)',
+      status: 'warning'
+    },
+    { 
+      title: 'Sphericity', 
+      value: '0.82', 
+      percent: 82,
+      color: 'var(--success)',
+      status: 'normal'
+    },
+    { 
+      title: 'Surface Area', 
+      value: '142 cm²', 
+      percent: 65,
+      color: 'var(--warning)',
+      status: 'warning'
+    },
+    { 
+      title: 'Solidity', 
+      value: '0.91', 
+      percent: 91,
+      color: 'var(--success)',
+      status: 'normal'
+    }
+  ];
+  
+  const surgicalData = [
+    { icon: '📐', value: '3.2 cm', label: 'Tumor Diameter' },
+    { icon: '📍', value: 'Head', label: 'Location' },
+    { icon: '🔗', value: '85%', label: 'Vascular Involvement' },
+    { icon: '📊', value: '2.1 cm', label: 'Margin Distance' },
+    { icon: '🎯', value: '94%', label: 'Resectability' },
+    { icon: '⏱️', value: '4.5 hrs', label: 'Est. Duration' }
+  ];
+  
+  const molecularData = [
+    { name: 'KRAS', expression: 87, value: 'Mutated' },
+    { name: 'TP53', expression: 65, value: 'Mutated' },
+    { name: 'SMAD4', expression: 42, value: 'Deleted' },
+    { name: 'CDKN2A', expression: 78, value: 'Mutated' },
+    { name: 'BRCA2', expression: 15, value: 'Wild-type' },
+    { name: 'PALB2', expression: 23, value: 'Wild-type' }
   ];
   
   analysisSection.innerHTML = `
-    <div class="analysis-grid">
-      ${results.map(r => `
-        <div class="analysis-item">
-          <div class="analysis-label">${r.label}</div>
-          <div class="analysis-value ${r.status}">${r.value}</div>
+    
+    <div class="parametric-grid">
+      ${parametricData.map(item => `
+        <div class="parametric-card">
+          <div class="parametric-title">${item.label} Parametric Map</div>
+          <div class="chart-bars">
+            <div class="chart-bar-wrapper">
+              <div class="chart-bar-value">${item.valueLabel}</div>
+              <div class="chart-bar" style="height: ${item.value}%"></div>
+            </div>
+          </div>
         </div>
       `).join('')}
     </div>
+    
+    <h3 class="analysis-section-title">Persistence Diagrams</h3>
+    <div class="persistence-container">
+      <div class="persistence-title">Topological Features Distribution</div>
+      <div class="persistence-diagram">
+        ${persistenceData.map(dot => `
+          <div class="persistence-dot" 
+               style="background: ${dot.type === 'tumor' ? 'var(--primary)' : 'var(--danger)'}; 
+                      opacity: ${0.5 + (dot.y / 100) * 0.5}; 
+                      transform: scale(${0.6 + (dot.x / 100) * 0.8})"
+               title="${dot.label}: (${dot.x}, ${dot.y})">
+          </div>
+        `).join('')}
+      </div>
+      <div class="persistence-legend">
+        <div class="persistence-legend-item">
+          <div class="legend-dot" style="background: var(--primary);"></div>
+          <span>Tumor Region</span>
+        </div>
+        <div class="persistence-legend-item">
+          <div class="legend-dot" style="background: var(--danger);"></div>
+          <span>Necrotic Region</span>
+        </div>
+      </div>
+    </div>
+    
+    <h3 class="analysis-section-title">Tumor Morphology</h3>
+    <div class="morphology-grid">
+      ${morphologyData.map(item => `
+        <div class="morphology-card">
+          <div class="morphology-header">
+            <div class="morphology-title">${item.title}</div>
+            <span class="morphology-badge badge-${item.status}">${item.status}</span>
+          </div>
+          <div class="morphology-value">${item.value}</div>
+          <div class="morphology-bar">
+            <div class="morphology-bar-fill" style="width: ${item.percent}%; background: ${item.color};"></div>
+          </div>
+          <div class="morphology-range">${item.percent}% of expected range</div>
+        </div>
+      `).join('')}
+    </div>
+    
+    <h3 class="analysis-section-title">Surgical Metrics</h3>
+    <div class="surgical-grid">
+      ${surgicalData.map(item => `
+        <div class="surgical-card">
+          <div class="surgical-icon">${item.icon}</div>
+          <div class="surgical-value">${item.value}</div>
+          <div class="surgical-label">${item.label}</div>
+        </div>
+      `).join('')}
+    </div>
+    
+    <h3 class="analysis-section-title">Molecular Phenotype</h3>
+    <div class="molecular-container">
+      <div class="molecular-title">Gene Expression Analysis</div>
+      <div class="molecular-grid">
+        ${molecularData.map(item => `
+          <div class="molecular-item">
+            <div class="molecular-name">${item.name}</div>
+            <div class="molecular-expression">
+              <div class="molecular-bar-mini">
+                <div class="molecular-bar-fill" style="width: ${item.expression}%; background: ${item.expression > 70 ? 'var(--danger)' : item.expression > 40 ? 'var(--warning)' : 'var(--success)'};"></div>
+              </div>
+              <div class="molecular-value">${item.value}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    
+    <h3 class="analysis-section-title">Overall Confidence</h3>
+    <div class="confidence-section">
+      <div class="confidence-title">AI Model Confidence Assessment</div>
+      <div class="confidence-display">
+        <div class="confidence-ring">
+          <svg width="160" height="160">
+            <circle class="confidence-ring-bg" cx="80" cy="80" r="70"></circle>
+            <circle class="confidence-ring-fill" id="confidenceRing" cx="80" cy="80" r="70"></circle>
+          </svg>
+          <div class="confidence-value">
+            <span class="confidence-percent" id="confidencePercent">0%</span>
+            <span class="confidence-label">Confidence</span>
+          </div>
+        </div>
+        <div class="confidence-details">
+          <div class="confidence-detail-item">
+            <div class="confidence-detail-label">Model Version</div>
+            <div class="confidence-detail-value">NeuroScan v3.2</div>
+          </div>
+          <div class="confidence-detail-item">
+            <div class="confidence-detail-label">Training Samples</div>
+            <div class="confidence-detail-value">2.4M scans</div>
+          </div>
+          <div class="confidence-detail-item">
+            <div class="confidence-detail-label">Validation AUC</div>
+            <div class="confidence-detail-value">0.967</div>
+          </div>
+          <div class="confidence-detail-item">
+            <div class="confidence-detail-label">Clinical Grade</div>
+            <div class="confidence-detail-value">FDA Approved</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <div style="margin-top: 2rem; text-align: center;">
       <button class="btn btn-primary" onclick="resetUpload()">Upload New Image</button>
     </div>
   `;
+  
+  setTimeout(() => {
+    const ring = document.getElementById('confidenceRing');
+    const percentText = document.getElementById('confidencePercent');
+    if (ring && percentText) {
+      const targetPercent = 94;
+      const circumference = 2 * Math.PI * 70;
+      const offset = circumference - (targetPercent / 100) * circumference;
+      ring.style.strokeDashoffset = offset;
+      
+      let current = 0;
+      const interval = setInterval(() => {
+        current += 1;
+        percentText.textContent = current + '%';
+        if (current >= targetPercent) clearInterval(interval);
+      }, 20);
+    }
+  }, 300);
 }
 
 function resetUpload() {
