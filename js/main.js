@@ -89,86 +89,94 @@ function initUploadZone() {
 function displayStaticAnalysis() {
   const analysisSection = document.getElementById('analysisSection');
   
+  const patientInfo = {
+    id: '001',
+    age: 64,
+    sex: 'Male',
+    scanDate: '2024-12-15'
+  };
+  
   const parametricData = [
-    { label: 'T1', value: 65, valueLabel: '0.65' },
-    { label: 'T2', value: 82, valueLabel: '0.82' },
-    { label: 'ADC', value: 45, valueLabel: '0.45' },
-    { label: 'DWI', value: 73, valueLabel: '0.73' },
-    { label: 'DCE', value: 58, valueLabel: '0.58' },
-    { label: 'FLAIR', value: 91, valueLabel: '0.91' }
+    { label: 'f', value: 0.28, valueLabel: '0.28', desc: 'Perfusion Fraction' },
+    { label: 'D', value: 0.85, valueLabel: '0.85', desc: 'Diffusion Coefficient' },
+    { label: 'D*', value: 0.12, valueLabel: '0.12', desc: 'Pseudodiffusion' },
+    { label: 'K', value: 0.92, valueLabel: '0.92', desc: 'Kurtosis' }
   ];
   
-  const persistenceData = [
-    { x: 12, y: 45, type: 'tumor', label: 'T1' },
-    { x: 25, y: 38, type: 'tumor', label: 'T2' },
-    { x: 38, y: 52, type: 'tumor', label: 'T3' },
-    { x: 45, y: 28, type: 'necrosis', label: 'N1' },
-    { x: 55, y: 65, type: 'tumor', label: 'T4' },
-    { x: 62, y: 22, type: 'necrosis', label: 'N2' },
-    { x: 70, y: 48, type: 'tumor', label: 'T5' },
-    { x: 78, y: 35, type: 'tumor', label: 'T6' },
-    { x: 85, y: 58, type: 'tumor', label: 'T7' }
-  ];
+  const persistenceData = {
+    betti1Count: 42,
+    complexity: 'High',
+    signatures: [
+      { x: 8, y: 92, type: 'tumor' },
+      { x: 15, y: 85, type: 'tumor' },
+      { x: 22, y: 78, type: 'tumor' },
+      { x: 30, y: 70, type: 'tumor' },
+      { x: 38, y: 65, type: 'tumor' },
+      { x: 45, y: 60, type: 'tumor' },
+      { x: 52, y: 55, type: 'tumor' },
+      { x: 60, y: 50, type: 'tumor' },
+      { x: 68, y: 45, type: 'tumor' },
+      { x: 75, y: 40, type: 'tumor' },
+      { x: 82, y: 35, type: 'tumor' },
+      { x: 90, y: 30, type: 'tumor' }
+    ]
+  };
   
-  const morphologyData = [
-    { 
-      title: 'Volume', 
-      value: '24.8 cm³', 
-      percent: 74,
-      color: 'var(--primary)',
-      status: 'warning'
-    },
-    { 
-      title: 'Sphericity', 
-      value: '0.82', 
-      percent: 82,
-      color: 'var(--success)',
-      status: 'normal'
-    },
-    { 
-      title: 'Surface Area', 
-      value: '142 cm²', 
-      percent: 65,
-      color: 'var(--warning)',
-      status: 'warning'
-    },
-    { 
-      title: 'Solidity', 
-      value: '0.91', 
-      percent: 91,
-      color: 'var(--success)',
-      status: 'normal'
-    }
-  ];
+  const morphologyData = {
+    diameter: '2.8 cm',
+    volume: '14.2 cm³',
+    volumePercent: '12% of Pancreatic Head'
+  };
   
-  const surgicalData = [
-    { icon: '📐', value: '3.2 cm', label: 'Tumor Diameter' },
-    { icon: '📍', value: 'Head', label: 'Location' },
-    { icon: '🔗', value: '85%', label: 'Vascular Involvement' },
-    { icon: '📊', value: '2.1 cm', label: 'Margin Distance' },
-    { icon: '🎯', value: '94%', label: 'Resectability' },
-    { icon: '⏱️', value: '4.5 hrs', label: 'Est. Duration' }
-  ];
+  const molecularData = {
+    classification: 'KRAS-G12D Positive',
+    confidence: 94,
+    alternatives: ['G12D', 'G12V', 'Wild-type']
+  };
   
-  const molecularData = [
-    { name: 'KRAS', expression: 87, value: 'Mutated' },
-    { name: 'TP53', expression: 65, value: 'Mutated' },
-    { name: 'SMAD4', expression: 42, value: 'Deleted' },
-    { name: 'CDKN2A', expression: 78, value: 'Mutated' },
-    { name: 'BRCA2', expression: 15, value: 'Wild-type' },
-    { name: 'PALB2', expression: 23, value: 'Wild-type' }
-  ];
+  const surgicalData = {
+    r0Resectability: '45%',
+    resectable: true,
+    finding: 'Presence of KRAS+ signals within 2mm of the Superior Mesenteric Vein Boundary',
+    smvProximity: '2.0 mm',
+    proximityRisk: 'High'
+  };
+  
+  const confidenceData = {
+    level: 90,
+    reason: 'Images show HIGH Kurtosis Value'
+  };
   
   analysisSection.innerHTML = `
     
+    <div class="patient-info-bar">
+      <div class="patient-info-item">
+        <div class="patient-info-label">Patient ID</div>
+        <div class="patient-info-value highlight">#${patientInfo.id}</div>
+      </div>
+      <div class="patient-info-item">
+        <div class="patient-info-label">Age / Sex</div>
+        <div class="patient-info-value">${patientInfo.age} / ${patientInfo.sex}</div>
+      </div>
+      <div class="patient-info-item">
+        <div class="patient-info-label">Scan Date</div>
+        <div class="patient-info-value">${patientInfo.scanDate}</div>
+      </div>
+      <div class="patient-info-item">
+        <div class="patient-info-label">Analysis Type</div>
+        <div class="patient-info-value">Pancreatic Tumor</div>
+      </div>
+    </div>
+    
+    <h3 class="analysis-section-title">Parametric Maps</h3>
     <div class="parametric-grid">
       ${parametricData.map(item => `
         <div class="parametric-card">
-          <div class="parametric-title">${item.label} Parametric Map</div>
+          <div class="parametric-title">${item.label} — ${item.desc}</div>
           <div class="chart-bars">
             <div class="chart-bar-wrapper">
               <div class="chart-bar-value">${item.valueLabel}</div>
-              <div class="chart-bar" style="height: ${item.value}%"></div>
+              <div class="chart-bar" style="height: ${item.value * 100}%"></div>
             </div>
           </div>
         </div>
@@ -177,72 +185,89 @@ function displayStaticAnalysis() {
     
     <h3 class="analysis-section-title">Persistence Diagrams</h3>
     <div class="persistence-container">
-      <div class="persistence-title">Topological Features Distribution</div>
+      <div class="persistence-title">Topological Signatures — Betti-1 Count: ${persistenceData.betti1Count} (${persistenceData.complexity} Complexity)</div>
       <div class="persistence-diagram">
-        ${persistenceData.map(dot => `
+        ${persistenceData.signatures.map((dot, i) => `
           <div class="persistence-dot" 
-               style="background: ${dot.type === 'tumor' ? 'var(--primary)' : 'var(--danger)'}; 
-                      opacity: ${0.5 + (dot.y / 100) * 0.5}; 
-                      transform: scale(${0.6 + (dot.x / 100) * 0.8})"
-               title="${dot.label}: (${dot.x}, ${dot.y})">
+               style="background: var(--primary); 
+                      opacity: ${0.4 + (dot.y / 100) * 0.6}; 
+                      transform: scale(${0.5 + (dot.x / 100) * 1.0})"
+               title="Feature ${i + 1}: persistence=${(dot.y / 100).toFixed(2)}">
           </div>
         `).join('')}
       </div>
       <div class="persistence-legend">
         <div class="persistence-legend-item">
           <div class="legend-dot" style="background: var(--primary);"></div>
-          <span>Tumor Region</span>
-        </div>
-        <div class="persistence-legend-item">
-          <div class="legend-dot" style="background: var(--danger);"></div>
-          <span>Necrotic Region</span>
+          <span>Tumor Topological Feature (${persistenceData.betti1Count} holes identified)</span>
         </div>
       </div>
     </div>
     
     <h3 class="analysis-section-title">Tumor Morphology</h3>
     <div class="morphology-grid">
-      ${morphologyData.map(item => `
-        <div class="morphology-card">
-          <div class="morphology-header">
-            <div class="morphology-title">${item.title}</div>
-            <span class="morphology-badge badge-${item.status}">${item.status}</span>
-          </div>
-          <div class="morphology-value">${item.value}</div>
-          <div class="morphology-bar">
-            <div class="morphology-bar-fill" style="width: ${item.percent}%; background: ${item.color};"></div>
-          </div>
-          <div class="morphology-range">${item.percent}% of expected range</div>
+      <div class="morphology-card">
+        <div class="morphology-header">
+          <div class="morphology-title">Maximal Diameter</div>
+          <span class="morphology-badge badge-warning">Measured</span>
         </div>
-      `).join('')}
-    </div>
-    
-    <h3 class="analysis-section-title">Surgical Metrics</h3>
-    <div class="surgical-grid">
-      ${surgicalData.map(item => `
-        <div class="surgical-card">
-          <div class="surgical-icon">${item.icon}</div>
-          <div class="surgical-value">${item.value}</div>
-          <div class="surgical-label">${item.label}</div>
+        <div class="morphology-value">${morphologyData.diameter}</div>
+        <div class="morphology-range">Largest cross-sectional dimension</div>
+      </div>
+      <div class="morphology-card">
+        <div class="morphology-header">
+          <div class="morphology-title">Volume</div>
+          <span class="morphology-badge badge-warning">Calculated</span>
         </div>
-      `).join('')}
+        <div class="morphology-value">${morphologyData.volume}</div>
+        <div class="morphology-range">${morphologyData.volumePercent}</div>
+      </div>
     </div>
     
     <h3 class="analysis-section-title">Molecular Phenotype</h3>
     <div class="molecular-container">
-      <div class="molecular-title">Gene Expression Analysis</div>
+      <div class="molecular-title">KRAS Mutation Classification</div>
       <div class="molecular-grid">
-        ${molecularData.map(item => `
+        ${molecularData.alternatives.map(alt => `
           <div class="molecular-item">
-            <div class="molecular-name">${item.name}</div>
+            <div class="molecular-name">KRAS-${alt}</div>
             <div class="molecular-expression">
               <div class="molecular-bar-mini">
-                <div class="molecular-bar-fill" style="width: ${item.expression}%; background: ${item.expression > 70 ? 'var(--danger)' : item.expression > 40 ? 'var(--warning)' : 'var(--success)'};"></div>
+                <div class="molecular-bar-fill" style="width: ${alt === 'G12D' ? 94 : alt === 'G12V' ? 8 : 3}%; background: ${alt === 'G12D' ? 'var(--primary)' : 'var(--border)'};"></div>
               </div>
-              <div class="molecular-value">${item.value}</div>
+              <div class="molecular-value" style="color: ${alt === 'G12D' ? 'var(--primary)' : 'var(--text-muted)'}">${alt === 'G12D' ? '94%' : '<5%'}</div>
             </div>
           </div>
         `).join('')}
+      </div>
+      <div class="kras-badge positive">
+        ✓ ${molecularData.classification} (${molecularData.confidence}% Confidence)
+      </div>
+    </div>
+    
+    <h3 class="analysis-section-title">Surgical Metrics</h3>
+    <div class="surgical-grid">
+      <div class="surgical-card">
+        <div class="surgical-header">
+          <div class="surgical-title">R0 Resection Probability</div>
+          <span class="surgical-badge badge-${surgicalData.resectable ? 'warning' : 'danger'}">${surgicalData.resectable ? 'Resectable' : 'Unresectable'}</span>
+        </div>
+        <div class="surgical-value">${surgicalData.r0Resectability}</div>
+        <div class="surgical-label">Probability of complete margin-negative resection</div>
+        <div class="surgical-finding">
+          <strong>Finding:</strong> ${surgicalData.finding}
+        </div>
+      </div>
+      <div class="surgical-card">
+        <div class="surgical-header">
+          <div class="surgical-title">SMV Proximity</div>
+          <span class="surgical-badge badge-danger">High Risk</span>
+        </div>
+        <div class="surgical-value">${surgicalData.smvProximity}</div>
+        <div class="surgical-label">Distance to Superior Mesenteric Vein boundary</div>
+        <div class="surgical-finding">
+          <strong>Risk:</strong> ${surgicalData.proximityRisk} — Vascular reconstruction may be required
+        </div>
       </div>
     </div>
     
@@ -279,6 +304,9 @@ function displayStaticAnalysis() {
           </div>
         </div>
       </div>
+      <div class="confidence-reason">
+        <strong>Reason for Confidence:</strong> ${confidenceData.reason}
+      </div>
     </div>
     
     <div style="margin-top: 2rem; text-align: center;">
@@ -290,7 +318,7 @@ function displayStaticAnalysis() {
     const ring = document.getElementById('confidenceRing');
     const percentText = document.getElementById('confidencePercent');
     if (ring && percentText) {
-      const targetPercent = 94;
+      const targetPercent = confidenceData.level;
       const circumference = 2 * Math.PI * 70;
       const offset = circumference - (targetPercent / 100) * circumference;
       ring.style.strokeDashoffset = offset;

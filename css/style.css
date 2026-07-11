@@ -283,6 +283,41 @@ button {
 }
 
 /* Parametric Maps */
+.patient-info-bar {
+  background: linear-gradient(135deg, var(--secondary) 0%, #1e3a5f 100%);
+  color: white;
+  border-radius: var(--radius);
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.patient-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.patient-info-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.7;
+}
+
+.patient-info-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.patient-info-value.highlight {
+  color: var(--accent);
+}
+
 .parametric-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -471,7 +506,7 @@ button {
 /* Surgical Metrics */
 .surgical-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
   margin-top: 1.5rem;
 }
@@ -480,7 +515,6 @@ button {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border-radius: var(--radius);
   padding: 1.5rem;
-  text-align: center;
   border: 1px solid var(--border);
   transition: transform 0.2s;
 }
@@ -490,9 +524,26 @@ button {
   box-shadow: var(--shadow);
 }
 
-.surgical-icon {
-  font-size: 2rem;
-  margin-bottom: 0.75rem;
+.surgical-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.surgical-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.surgical-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .surgical-value {
@@ -505,6 +556,16 @@ button {
 .surgical-label {
   font-size: 0.85rem;
   color: var(--text-muted);
+}
+
+.surgical-finding {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  border-left: 3px solid var(--accent);
 }
 
 /* Molecular Phenotype */
@@ -569,6 +630,27 @@ button {
   font-size: 0.9rem;
   min-width: 40px;
   text-align: right;
+}
+
+.kras-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-weight: 700;
+  font-size: 1rem;
+  margin-top: 1rem;
+}
+
+.kras-badge.positive {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.kras-badge.wild-type {
+  background: #f1f5f9;
+  color: var(--text-muted);
 }
 
 /* Overall Confidence */
@@ -664,6 +746,23 @@ button {
 .confidence-detail-value {
   font-size: 1.1rem;
   font-weight: 600;
+}
+
+.confidence-reason {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  text-align: left;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.confidence-reason strong {
+  color: var(--accent);
 }
 
 /* Section titles within analysis */
