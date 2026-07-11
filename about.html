@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroScan - About Us</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <div class="logo-icon">🧠</div>
+        <span>NeuroScan</span>
+      </a>
+      
+      <ul class="nav-links">
+        <li><a href="index.html">Analysis</a></li>
+        <li><a href="patients.html">Patients</a></li>
+        <li><a href="about.html">About</a></li>
+      </ul>
+      
+      <div class="nav-auth">
+        <a href="login.html" class="btn btn-outline btn-sm">Sign In</a>
+      </div>
+    </div>
+  </nav>
+  
+  <main class="container">
+    <div class="section-header" style="text-align: center; max-width: 800px; margin: 0 auto 3rem;">
+      <h2>About NeuroScan</h2>
+      <p>Pioneering the future of medical imaging through artificial intelligence and deep learning.</p>
+    </div>
+    
+    <div class="about-content">
+      <p>
+        NeuroScan was founded with a singular vision: to democratize access to world-class medical imaging analysis. 
+        Our platform leverages state-of-the-art deep learning algorithms trained on millions of MRI scans to provide 
+        radiologists and healthcare professionals with rapid, accurate, and reliable diagnostic support.
+      </p>
+      <p>
+        We believe that early detection saves lives. By reducing the time between scan and diagnosis, we empower 
+        medical teams to intervene sooner and more effectively. Our technology is designed to augment human expertise, 
+        not replace it, providing clinicians with powerful tools to enhance their diagnostic capabilities.
+      </p>
+      <p>
+        Based in San Francisco, our team of researchers, engineers, and medical professionals work collaboratively 
+        to push the boundaries of what's possible in medical AI. We are committed to continuous improvement, 
+        rigorous validation, and the highest standards of patient data privacy and security.
+      </p>
+    </div>
+    
+    <div style="margin: 4rem 0;">
+      <div class="section-header" style="text-align: center;">
+        <h2>Meet Our Researchers</h2>
+        <p>The brilliant minds behind NeuroScan's breakthrough technology.</p>
+      </div>
+      
+      <div class="carousel-container">
+        <div class="carousel-track" id="carouselTrack">
+          <div class="carousel-slide">
+            <div class="researcher-card">
+              <div class="researcher-avatar">👨‍⚕️</div>
+              <div class="researcher-name">Dr. Alexandra Reyes</div>
+              <div class="researcher-role">Chief Medical Officer</div>
+              <div class="researcher-bio">
+                Board-certified radiologist with 15 years of experience in neuroradiology. 
+                Former researcher at Stanford Medical School, specializing in AI-assisted diagnostic imaging 
+                and early detection of neurodegenerative diseases.
+              </div>
+            </div>
+          </div>
+          
+          <div class="carousel-slide">
+            <div class="researcher-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+              <div class="researcher-avatar">👩‍💻</div>
+              <div class="researcher-name">Dr. Mei-Lin Zhang</div>
+              <div class="researcher-role">Lead AI Researcher</div>
+              <div class="researcher-bio">
+                PhD in Computer Science from MIT with a focus on deep learning for medical imaging. 
+                Published over 40 peer-reviewed papers on convolutional neural networks and 
+                their applications in radiology. Previously led AI research at Google Health.
+              </div>
+            </div>
+          </div>
+          
+          <div class="carousel-slide">
+            <div class="researcher-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+              <div class="researcher-avatar">👨‍🔬</div>
+              <div class="researcher-name">Dr. James Okafor</div>
+              <div class="researcher-role">Director of Engineering</div>
+              <div class="researcher-bio">
+                Software architect with 12 years of experience in healthcare technology systems. 
+                Led engineering teams at Epic Systems and Cerner, building scalable platforms 
+                that process millions of medical images daily with HIPAA-compliant security.
+              </div>
+            </div>
+          </div>
+          
+          <div class="carousel-slide">
+            <div class="researcher-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+              <div class="researcher-avatar">👩‍⚕️</div>
+              <div class="researcher-name">Dr. Sofia Andersson</div>
+              <div class="researcher-role">Clinical Validation Lead</div>
+              <div class="researcher-bio">
+                Neurologist and clinical researcher specializing in the validation of AI diagnostic tools. 
+                Has conducted multi-center clinical trials across 12 hospitals, ensuring our models 
+                meet the rigorous standards required for clinical deployment.
+              </div>
+            </div>
+          </div>
+          
+          <div class="carousel-slide">
+            <div class="researcher-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+              <div class="researcher-avatar">👨‍💻</div>
+              <div class="researcher-name">Dr. Raj Patel</div>
+              <div class="researcher-role">Data Science Lead</div>
+              <div class="researcher-bio">
+                Expert in medical data curation and annotation. Built one of the largest 
+                annotated MRI datasets in the world, containing over 2 million labeled scans 
+                from 50+ institutions worldwide, enabling unprecedented model training capabilities.
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <button class="carousel-btn prev" id="prevBtn">‹</button>
+        <button class="carousel-btn next" id="nextBtn">›</button>
+        
+        <div class="carousel-dots">
+          <button class="carousel-dot active" data-index="0"></button>
+          <button class="carousel-dot" data-index="1"></button>
+          <button class="carousel-dot" data-index="2"></button>
+          <button class="carousel-dot" data-index="3"></button>
+          <button class="carousel-dot" data-index="4"></button>
+        </div>
+      </div>
+    </div>
+    
+    <div style="margin-top: 4rem; text-align: center;">
+      <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <h3 style="margin-bottom: 1rem; color: var(--secondary);">Our Mission</h3>
+        <p style="color: var(--text-muted); line-height: 1.8;">
+          To revolutionize medical diagnostics by making advanced AI-powered imaging analysis 
+          accessible, affordable, and accurate for healthcare providers worldwide, ultimately 
+          improving patient outcomes through earlier and more precise diagnoses.
+        </p>
+      </div>
+    </div>
+  </main>
+  
+  <footer class="footer">
+    <p>NeuroScan - Advanced Medical Imaging Analysis</p>
+  </footer>
+  
+  <script src="js/main.js"></script>
+</body>
+</html>

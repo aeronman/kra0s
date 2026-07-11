@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroScan - MRI Analysis</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <div class="logo-icon">🧠</div>
+        <span>NeuroScan</span>
+      </a>
+      
+      <ul class="nav-links">
+        <li><a href="index.html">Analysis</a></li>
+        <li><a href="patients.html">Patients</a></li>
+        <li><a href="about.html">About</a></li>
+      </ul>
+      
+      <div class="nav-auth">
+        <a href="login.html" class="btn btn-outline btn-sm">Sign In</a>
+      </div>
+    </div>
+  </nav>
+  
+  <section class="hero">
+    <h1>AI-Powered MRI Analysis</h1>
+    <p>Upload your MRI scans and get instant detailed analysis with our advanced neural network models.</p>
+  </section>
+  
+  <main class="container">
+    <div class="section-header">
+      <h2>Upload MRI Scan</h2>
+      <p>Drag and drop your MRI image or click to browse. Supports DICOM, PNG, and JPG formats.</p>
+    </div>
+    
+    <div class="card">
+      <div id="uploadZone" class="upload-zone">
+        <div class="upload-icon">📁</div>
+        <div class="upload-text">
+          <strong>Click to upload</strong> or drag and drop your MRI image here
+        </div>
+        <div class="upload-text" style="font-size: 0.85rem;">
+          Supported formats: DICOM, PNG, JPG, JPEG (Max 50MB)
+        </div>
+        <input type="file" id="mriFile" accept="image/*" style="display: none;">
+      </div>
+      
+      <img id="imagePreview" class="image-preview hidden" alt="MRI Preview">
+      
+      <div id="analysisSection" class="hidden">
+        <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">Analysis Results</h3>
+      </div>
+    </div>
+    
+    <div style="margin-top: 3rem;">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">2,847</div>
+          <div class="stat-label">Scans Analyzed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">98.5%</div>
+          <div class="stat-label">Accuracy Rate</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">0.8s</div>
+          <div class="stat-label">Avg. Processing</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">24/7</div>
+          <div class="stat-label">Availability</div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <footer class="footer">
+    <p>NeuroScan - Advanced Medical Imaging Analysis</p>
+  </footer>
+  
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroScan - Patients</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <div class="logo-icon">🧠</div>
+        <span>NeuroScan</span>
+      </a>
+      
+      <ul class="nav-links">
+        <li><a href="index.html">Analysis</a></li>
+        <li><a href="patients.html">Patients</a></li>
+        <li><a href="about.html">About</a></li>
+      </ul>
+      
+      <div class="nav-auth">
+        <a href="login.html" class="btn btn-outline btn-sm">Sign In</a>
+      </div>
+    </div>
+  </nav>
+  
+  <main class="container">
+    <div class="section-header">
+      <h2>Patient Records</h2>
+      <p>Manage and view all patient MRI scan records and analysis history.</p>
+    </div>
+    
+    <div class="card" style="margin-bottom: 2rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div class="form-group" style="margin: 0; flex: 1; min-width: 250px;">
+          <input type="text" id="patientSearch" placeholder="Search patients by name, ID, or diagnosis...">
+        </div>
+        <button class="btn btn-primary">
+          + Add Patient
+        </button>
+      </div>
+      
+      <div class="table-container">
+        <table id="patientTable">
+          <thead>
+            <tr>
+              <th>Patient ID</th>
+              <th>Name</th>
+              <th>Age</th>
+              <th>Gender</th>
+              <th>Last Scan</th>
+              <th>Diagnosis</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>#PT-2024-001</td>
+              <td>Sarah Johnson</td>
+              <td>45</td>
+              <td>Female</td>
+              <td>2024-12-15</td>
+              <td>No abnormalities detected</td>
+              <td><span class="badge badge-success">Normal</span></td>
+              <td><button class="btn btn-sm btn-secondary">View</button></td>
+            </tr>
+            <tr>
+              <td>#PT-2024-002</td>
+              <td>Michael Chen</td>
+              <td>62</td>
+              <td>Male</td>
+              <td>2024-12-14</td>
+              <td>Mild white matter changes</td>
+              <td><span class="badge badge-warning">Follow-up</span></td>
+              <td><button class="btn btn-sm btn-secondary">View</button></td>
+            </tr>
+            <tr>
+              <td>#PT-2024-003</td>
+              <td>Emily Rodriguez</td>
+              <td>38</td>
+              <td>Female</td>
+              <td>2024-12-13</td>
+              <td>Small lesion detected</td>
+              <td><span class="badge badge-danger">Review</span></td>
+              <td><button class="btn btn-sm btn-secondary">View</button></td>
+            </tr>
+            <tr>
+              <td>#PT-2024-004</td>
+              <td>James Wilson</td>
+              <td>55</td>
+              <td>Male</td>
+              <td>2024-12-12</td>
+              <td>Normal brain structure</td>
+              <td><span class="badge badge-success">Normal</span></td>
+              <td><button class="btn btn-sm btn-secondary">View</button></td>
+            </tr>
+            <tr>
+              <td>#PT-2024-005</td>
+              <td>Lisa Thompson</td>
+              <td>71</td>
+              <td>Female</td>
+              <td>2024-12-11</td>
+              <td>Age-related atrophy</td>
+              <td><span class="badge badge-warning">Follow-up</span></td>
+              <td><button class="btn btn-sm btn-secondary">View</button></td>
+            </tr>
+            <tr>
+              <td>#PT-2024-006</td>
+              <td>David Kim</td>
+              <td>49</td>
+              <td>Male</td>
+              <td>2024-12-10</td>
+              <td>Normal findings</td>
+              <td><span class="badge badge-success">Normal</span></td>
+              <td><button class="btn btn-sm btn-secondary">View</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">1,234</div>
+        <div class="stat-label">Total Patients</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">156</div>
+        <div class="stat-label">This Month</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">89%</div>
+        <div class="stat-label">Normal Results</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">11%</div>
+        <div class="stat-label">Require Review</div>
+      </div>
+    </div>
+  </main>
+  
+  <footer class="footer">
+    <p>NeuroScan - Advanced Medical Imaging Analysis</p>
+  </footer>
+  
+  <script src="js/main.js"></script>
+</body>
+</html>
