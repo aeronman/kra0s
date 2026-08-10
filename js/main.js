@@ -58,11 +58,18 @@ function isLoggedIn() {
 }
 
 function requireAuth() {
-  if (!isLoggedIn()) {
-    window.location.href = 'login.html';
-    return false;
-  }
-  return true;
+    const currentPage = window.location.pathname.split('/').pop().toLowerCase();
+
+    if (currentPage === 'login.html') {
+        return true;
+    }
+
+    if (!isLoggedIn()) {
+        window.location.replace('login.html');
+        return false;
+    }
+
+    return true;
 }
 
 // ============================================
