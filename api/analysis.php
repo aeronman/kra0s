@@ -94,8 +94,10 @@ if ($method === 'GET') {
     }
     
     if ($patientId) {
-        $stmt = $pdo->prepare('SELECT ar.run_id, ar.analysis_type, ar.model_version, ar.completed_at, ar.confidence_level
+        $stmt = $pdo->prepare('SELECT ar.run_id, ar.analysis_type, ar.model_version, ar.completed_at, ar.confidence_level,
+                                      p.patient_code, p.full_name, p.age, p.gender
                                FROM analysis_runs ar
+                               JOIN patients p ON ar.patient_id = p.patient_id
                                WHERE ar.patient_id = ? AND ar.status = "completed"
                                ORDER BY ar.completed_at DESC');
         $stmt->execute([$patientId]);

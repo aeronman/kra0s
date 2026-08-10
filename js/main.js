@@ -57,6 +57,14 @@ function isLoggedIn() {
   return !!getCurrentUser();
 }
 
+function requireAuth() {
+  if (!isLoggedIn()) {
+    window.location.href = 'login.html';
+    return false;
+  }
+  return true;
+}
+
 // ============================================
 // PATIENTS API
 // ============================================
@@ -181,12 +189,19 @@ function initUploadZone() {
   });
   
   async function handleFile(file) {
+    if (!requireAuth()) return;
+    
     const patientId = patientSelect ? patientSelect.value : null;
     if (!patientId) {
       showToast('Please select a patient first', 'error');
       return;
     }
     const openaiKey = document.getElementById('openaiKey')?.value?.trim();
+    
+    if (!openaiKey) {
+      showToast('OpenAI API key is required', 'error');
+      return;
+    }
     
     // Show preview for image files
     if (file.type.startsWith('image/')) {
@@ -202,22 +217,13 @@ function initUploadZone() {
     analysisSection.classList.remove('hidden');
     
     try {
-      if (openaiKey) {
-        analysisSection.innerHTML = '<div class="spinner"></div><p style="text-align: center; margin-top: 1rem;">Analyzing with OpenAI Vision...</p>';
-        const result = await runOpenAIAnalysis(file, patientId, openaiKey);
-        showToast('OpenAI analysis completed');
-        if (result.analysis) {
-          displayAnalysisFromData(result.analysis, result.patient);
-        } else {
-          displayStaticAnalysis();
-        }
+      analysisSection.innerHTML = '<div class="spinner"></div><p style="text-align: center; margin-top: 1rem;">Analyzing with OpenAI Vision...</p>';
+      const result = await runOpenAIAnalysis(file, patientId, openaiKey);
+      showToast('OpenAI analysis completed');
+      if (result.analysis) {
+        displayAnalysisFromData(result.analysis, result.patient);
       } else {
-        analysisSection.innerHTML = '<div class="spinner"></div><p style="text-align: center; margin-top: 1rem;">Analyzing scan with AI model...</p>';
-        await uploadImage(file, patientId);
-        showToast('Image uploaded successfully');
-        setTimeout(() => {
-          displayStaticAnalysis();
-        }, 1500);
+        displayStaticAnalysis();
       }
     } catch (err) {
       showToast(err.message, 'error');
@@ -758,18 +764,29 @@ function resetUpload() {
   const fileInput = document.getElementById('mriFile');
   const preview = document.getElementById('imagePreview');
   const analysisSection = document.getElementById('analysisSection');
+  const patientSelect = document.getElementById('patientSelect');
   
   uploadZone.classList.remove('hidden');
   preview.classList.add('hidden');
   preview.src = '';
-  analysisSection.classList.add('hidden');
   fileInput.value = '';
+  
+  // Reload saved analysis for current patient
+  const patientId = patientSelect ? patientSelect.value : null;
+  if (patientId) {
+    analysisSection.classList.remove('hidden');
+    loadSavedAnalysisList(patientId);
+  } else {
+    analysisSection.classList.add('hidden');
+  }
 }
 
 // ============================================
 // PATIENT SELECT LOADER
 // ============================================
 async function loadPatientSelect() {
+  if (!requireAuth()) return;
+  
   const select = document.getElementById('patientSelect');
   if (!select) return;
   
@@ -782,9 +799,320 @@ async function loadPatientSelect() {
     
     select.innerHTML = '<option value="">-- Select a patient --</option>' +
       patients.map(p => `<option value="${p.patient_id}">#${p.patient_code} - ${p.full_name}</option>`).join('');
+    
+    // Listen for patient changes to load saved analysis
+    select.onchange = async () => {
+      const patientId = select.value;
+      const analysisSection = document.getElementById('analysisSection');
+      const uploadZone = document.getElementById('uploadZone');
+      
+      if (patientId) {
+        if (analysisSection) analysisSection.classList.remove('hidden');
+        if (uploadZone) uploadZone.classList.remove('hidden');
+        await loadSavedAnalysisList(patientId);
+      } else {
+        if (analysisSection) analysisSection.classList.add('hidden');
+      }
+    };
+    
+    // Check URL params for patient pre-selection
+    const params = new URLSearchParams(window.location.search);
+    const patientId = params.get('patient');
+    if (patientId) {
+      select.value = patientId;
+      await loadSavedAnalysisList(patientId);
+    }
   } catch (err) {
     console.error('Failed to load patients:', err);
   }
+}
+
+async function loadSavedAnalysisList(patientId) {
+  const savedSection = document.getElementById('savedAnalysisSection');
+  const savedList = document.getElementById('savedAnalysisList');
+  if (!savedSection || !savedList) return;
+  
+  try {
+    const results = await loadAnalysisResults(patientId);
+    if (results.length > 0) {
+      savedSection.classList.remove('hidden');
+      savedList.innerHTML = results.map((r, i) => `
+        <div class="card" style="margin-bottom: 1rem; cursor: pointer;" onclick="viewSavedAnalysis(${r.run_id})">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 600; color: var(--secondary);">Analysis #${results.length - i} - ${r.analysis_type}</div>
+              <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+                ${r.model_version || 'N/A'} • ${r.completed_at ? new Date(r.completed_at).toLocaleString() : 'N/A'}
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-weight: 700; color: ${r.confidence_level >= 80 ? 'var(--success)' : 'var(--warning)'};">${r.confidence_level || 'N/A'}%</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">confidence</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      savedSection.classList.remove('hidden');
+      savedList.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 1rem;">No saved analysis results for this patient yet. Upload an image to run analysis.</p>';
+    }
+  } catch (err) {
+    console.error('Failed to load saved analysis:', err);
+  }
+}
+
+async function viewSavedAnalysis(runId) {
+  if (!requireAuth()) return;
+  
+  const result = await loadAnalysisResult(runId);
+  if (result) {
+    displayAnalysisFromDB(result);
+  }
+}
+
+function displayAnalysisFromDB(d) {
+  const analysisSection = document.getElementById('analysisSection');
+  const savedSection = document.getElementById('savedAnalysisSection');
+  if (savedSection) savedSection.classList.add('hidden');
+  
+  const patientInfo = {
+    id: d.patient_code?.replace('PT-2024-', '') || '001',
+    age: d.age || 'N/A',
+    sex: d.gender || 'N/A',
+    scanDate: d.completed_at ? new Date(d.completed_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+  };
+  
+  const parametricData = [
+    { label: 'f', value: d.param_f || 0, valueLabel: (d.param_f || 0).toFixed(2), desc: 'Perfusion Fraction' },
+    { label: 'D', value: d.param_d || 0, valueLabel: (d.param_d || 0).toFixed(2), desc: 'Diffusion Coefficient' },
+    { label: 'D*', value: d.param_d_star || 0, valueLabel: (d.param_d_star || 0).toFixed(2), desc: 'Pseudodiffusion' },
+    { label: 'K', value: d.param_k || 0, valueLabel: (d.param_k || 0).toFixed(2), desc: 'Kurtosis' }
+  ];
+  
+  const persistenceData = {
+    betti1Count: d.betti1_count || 0,
+    complexity: d.topological_complexity || 'Medium',
+    signatures: Array.from({ length: 12 }, (_, i) => ({
+      x: 10 + i * 7,
+      y: 90 - i * 5,
+      type: 'tumor'
+    }))
+  };
+  
+  const morphologyData = {
+    diameter: (d.tumor_diameter_cm || 0) + ' cm',
+    volume: (d.tumor_volume_cm3 || 0) + ' cm³',
+    volumePercent: d.tumor_volume_percent || 'N/A'
+  };
+  
+  const alternatives = d.kras_alternatives ? Object.keys(d.kras_alternatives) : ['G12D', 'G12V', 'Wild-type'];
+  const molecularData = {
+    classification: 'KRAS-' + (d.kras_classification || 'Unknown') + ' Positive',
+    confidence: d.kras_confidence || 0,
+    alternatives: alternatives
+  };
+  
+  const surgicalData = {
+    r0Resectability: (d.r0_resectability_pct || 0) + '%',
+    resectable: d.is_resectable ? true : false,
+    finding: d.surgical_finding || 'N/A',
+    smvProximity: (d.smv_proximity_mm || 0) + ' mm',
+    proximityRisk: d.smv_proximity_risk || 'Medium'
+  };
+  
+  const confidenceData = {
+    level: d.confidence_level || 0,
+    reason: d.confidence_reason || 'N/A'
+  };
+  
+  analysisSection.classList.remove('hidden');
+  analysisSection.innerHTML = `
+    <div class="patient-info-bar">
+      <div class="patient-info-item">
+        <div class="patient-info-label">Patient ID</div>
+        <div class="patient-info-value highlight">#${patientInfo.id}</div>
+      </div>
+      <div class="patient-info-item">
+        <div class="patient-info-label">Age / Sex</div>
+        <div class="patient-info-value">${patientInfo.age} / ${patientInfo.sex}</div>
+      </div>
+      <div class="patient-info-item">
+        <div class="patient-info-label">Scan Date</div>
+        <div class="patient-info-value">${patientInfo.scanDate}</div>
+      </div>
+      <div class="patient-info-item">
+        <div class="patient-info-label">Analysis Type</div>
+        <div class="patient-info-value">${d.analysis_type || 'Pancreatic Tumor'}</div>
+      </div>
+    </div>
+    
+    <h3 class="analysis-section-title">Parametric Maps</h3>
+    <div class="parametric-grid">
+      ${parametricData.map(item => `
+        <div class="parametric-card">
+          <div class="parametric-title">${item.label} — ${item.desc}</div>
+          <div class="chart-bars">
+            <div class="chart-bar-wrapper">
+              <div class="chart-bar-value">${item.valueLabel}</div>
+              <div class="chart-bar" style="height: ${Math.min(item.value * 100, 100)}%"></div>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    
+    <h3 class="analysis-section-title">Persistence Diagrams</h3>
+    <div class="persistence-container">
+      <div class="persistence-title">Topological Signatures — Betti-1 Count: ${persistenceData.betti1Count} (${persistenceData.complexity} Complexity)</div>
+      <div class="persistence-diagram">
+        ${persistenceData.signatures.map((dot, i) => `
+          <div class="persistence-dot" 
+               style="background: var(--primary); 
+                      opacity: ${0.4 + (dot.y / 100) * 0.6}; 
+                      transform: scale(${0.5 + (dot.x / 100) * 1.0})"
+               title="Feature ${i + 1}: persistence=${(dot.y / 100).toFixed(2)}">
+          </div>
+        `).join('')}
+      </div>
+      <div class="persistence-legend">
+        <div class="persistence-legend-item">
+          <div class="legend-dot" style="background: var(--primary);"></div>
+          <span>Tumor Topological Feature (${persistenceData.betti1Count} holes identified)</span>
+        </div>
+      </div>
+    </div>
+    
+    <h3 class="analysis-section-title">Tumor Morphology</h3>
+    <div class="morphology-grid">
+      <div class="morphology-card">
+        <div class="morphology-header">
+          <div class="morphology-title">Maximal Diameter</div>
+          <span class="morphology-badge badge-warning">Measured</span>
+        </div>
+        <div class="morphology-value">${morphologyData.diameter}</div>
+        <div class="morphology-range">Largest cross-sectional dimension</div>
+      </div>
+      <div class="morphology-card">
+        <div class="morphology-header">
+          <div class="morphology-title">Volume</div>
+          <span class="morphology-badge badge-warning">Calculated</span>
+        </div>
+        <div class="morphology-value">${morphologyData.volume}</div>
+        <div class="morphology-range">${morphologyData.volumePercent}</div>
+      </div>
+    </div>
+    
+    <h3 class="analysis-section-title">Molecular Phenotype</h3>
+    <div class="molecular-container">
+      <div class="molecular-title">KRAS Mutation Classification</div>
+      <div class="molecular-grid">
+        ${alternatives.map(alt => {
+          const score = (d.kras_alternatives && d.kras_alternatives[alt]) || 0;
+          const isPrimary = alt === d.kras_classification;
+          return `
+          <div class="molecular-item">
+            <div class="molecular-name">KRAS-${alt}</div>
+            <div class="molecular-expression">
+              <div class="molecular-bar-mini">
+                <div class="molecular-bar-fill" style="width: ${Math.min(score, 100)}%; background: ${isPrimary ? 'var(--primary)' : 'var(--border)'};"></div>
+              </div>
+              <div class="molecular-value" style="color: ${isPrimary ? 'var(--primary)' : 'var(--text-muted)'}">${score}%</div>
+            </div>
+          </div>
+          `;
+        }).join('')}
+      </div>
+      <div class="kras-badge positive">
+        ✓ ${molecularData.classification} (${molecularData.confidence}% Confidence)
+      </div>
+    </div>
+    
+    <h3 class="analysis-section-title">Surgical Metrics</h3>
+    <div class="surgical-grid">
+      <div class="surgical-card">
+        <div class="surgical-header">
+          <div class="surgical-title">R0 Resection Probability</div>
+          <span class="surgical-badge badge-${surgicalData.resectable ? 'warning' : 'danger'}">${surgicalData.resectable ? 'Resectable' : 'Unresectable'}</span>
+        </div>
+        <div class="surgical-value">${surgicalData.r0Resectability}</div>
+        <div class="surgical-label">Probability of complete margin-negative resection</div>
+        <div class="surgical-finding">
+          <strong>Finding:</strong> ${surgicalData.finding}
+        </div>
+      </div>
+      <div class="surgical-card">
+        <div class="surgical-header">
+          <div class="surgical-title">SMV Proximity</div>
+          <span class="surgical-badge badge-danger">${surgicalData.proximityRisk} Risk</span>
+        </div>
+        <div class="surgical-value">${surgicalData.smvProximity}</div>
+        <div class="surgical-label">Distance to Superior Mesenteric Vein boundary</div>
+        <div class="surgical-finding">
+          <strong>Risk:</strong> ${surgicalData.proximityRisk} — Vascular reconstruction may be required
+        </div>
+      </div>
+    </div>
+    
+    <h3 class="analysis-section-title">Overall Confidence</h3>
+    <div class="confidence-section">
+      <div class="confidence-title">AI Model Confidence Assessment</div>
+      <div class="confidence-display">
+        <div class="confidence-ring">
+          <svg width="160" height="160">
+            <circle class="confidence-ring-bg" cx="80" cy="80" r="70"></circle>
+            <circle class="confidence-ring-fill" id="confidenceRing" cx="80" cy="80" r="70"></circle>
+          </svg>
+          <div class="confidence-value">
+            <span class="confidence-percent" id="confidencePercent">0%</span>
+            <span class="confidence-label">Confidence</span>
+          </div>
+        </div>
+        <div class="confidence-details">
+          <div class="confidence-detail-item">
+            <div class="confidence-detail-label">Model Version</div>
+            <div class="confidence-detail-value">${d.model_version || 'OpenAI Vision'}</div>
+          </div>
+          <div class="confidence-detail-item">
+            <div class="confidence-detail-label">Analysis Type</div>
+            <div class="confidence-detail-value">${d.analysis_type || 'Pancreatic Tumor'}</div>
+          </div>
+          <div class="confidence-detail-item">
+            <div class="confidence-detail-label">KRAS Status</div>
+            <div class="confidence-detail-value">${molecularData.classification}</div>
+          </div>
+          <div class="confidence-detail-item">
+            <div class="confidence-detail-label">Resectability</div>
+            <div class="confidence-detail-value">${surgicalData.r0Resectability}</div>
+          </div>
+        </div>
+      </div>
+      <div class="confidence-reason">
+        <strong>Reason for Confidence:</strong> ${confidenceData.reason}
+      </div>
+    </div>
+    
+    <div style="margin-top: 2rem; text-align: center;">
+      <button class="btn btn-primary" onclick="resetUpload()">Upload New Image</button>
+    </div>
+  `;
+  
+  setTimeout(() => {
+    const ring = document.getElementById('confidenceRing');
+    const percentText = document.getElementById('confidencePercent');
+    if (ring && percentText) {
+      const targetPercent = confidenceData.level;
+      const circumference = 2 * Math.PI * 70;
+      const offset = circumference - (targetPercent / 100) * circumference;
+      ring.style.strokeDashoffset = offset;
+      
+      let current = 0;
+      const interval = setInterval(() => {
+        current += 1;
+        percentText.textContent = current + '%';
+        if (current >= targetPercent) clearInterval(interval);
+      }, 20);
+    }
+  }, 300);
 }
 
 // ============================================
@@ -838,6 +1166,10 @@ function initLoginForm() {
   const form = document.getElementById('loginForm');
   if (!form) return;
   
+  // Store intended redirect
+  const urlParams = new URLSearchParams(window.location.search);
+  const redirect = urlParams.get('redirect') || 'index.html';
+  
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value;
@@ -857,7 +1189,7 @@ function initLoginForm() {
       await login(email, password);
       showToast('Login successful! Redirecting...');
       setTimeout(() => {
-        window.location.href = 'index.html';
+        window.location.href = redirect;
       }, 1000);
     } catch (err) {
       showToast(err.message, 'error');

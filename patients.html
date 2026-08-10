@@ -7,6 +7,11 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <script>
+    if (!localStorage.getItem('neuroscan_user')) {
+      window.location.href = 'login.html?redirect=' + encodeURIComponent('patients.html');
+    }
+  </script>
   <nav class="navbar">
     <div class="nav-container">
       <a href="index.html" class="logo">
@@ -21,7 +26,8 @@
       </ul>
       
       <div class="nav-auth">
-        <a href="login.html" class="btn btn-outline btn-sm">Sign In</a>
+        <span id="navUserName" style="color: #cbd5e1; font-size: 0.9rem; margin-right: 1rem;"></span>
+        <button class="btn btn-outline btn-sm" onclick="logout()">Sign Out</button>
       </div>
     </div>
   </nav>
@@ -155,10 +161,21 @@
   
   <script src="js/main.js"></script>
   <script>
-    // Load patients on page load
     document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('neuroscan_user') || '{}');
+      if (user.full_name) {
+        document.getElementById('navUserName').textContent = user.full_name;
+      }
       loadPatients();
     });
+    
+    function logout() {
+      localStorage.removeItem('neuroscan_user');
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>
     
     async function loadPatients(search = '') {
       const tbody = document.getElementById('patientTableBody');
