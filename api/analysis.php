@@ -20,7 +20,7 @@ if ($method === 'POST') {
         $input['image_id'] ?? null,
         $input['triggered_by'] ?? null,
         $input['analysis_type'] ?? 'Pancreatic Tumor',
-        $input['model_version'] ?? 'NeuroScan v3.2',
+        $input['model_version'] ?? 'KRA0S v3.2',
         'completed'
     ]);
     

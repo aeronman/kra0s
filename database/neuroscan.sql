@@ -1,5 +1,5 @@
 -- ============================================
--- NeuroScan MySQL Database Schema
+-- KRA0S MySQL Database Schema
 -- ============================================
 
 CREATE DATABASE IF NOT EXISTS neuroscan
@@ -172,7 +172,7 @@ INSERT INTO patients (patient_code, full_name, date_of_birth, age, gender, diagn
 ('PT-2024-003', 'Emily Rodriguez', '1986-11-05', 38, 'Female', 'Small lesion detected', 'Review');
 
 INSERT INTO analysis_runs (patient_id, analysis_type, model_version, status, started_at, completed_at) VALUES
-(3, 'Pancreatic Tumor', 'NeuroScan v3.2', 'completed', NOW() - INTERVAL 1 HOUR, NOW());
+(3, 'Pancreatic Tumor', 'KRA0S v3.2', 'completed', NOW() - INTERVAL 1 HOUR, NOW());
 
 INSERT INTO analysis_results (
     run_id,

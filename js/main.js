@@ -678,7 +678,7 @@ function displayStaticAnalysis() {
         <div class="confidence-details">
           <div class="confidence-detail-item">
             <div class="confidence-detail-label">Model Version</div>
-            <div class="confidence-detail-value">NeuroScan v3.2</div>
+            <div class="confidence-detail-value">KRA0S v3.2</div>
           </div>
           <div class="confidence-detail-item">
             <div class="confidence-detail-label">Training Samples</div>
@@ -728,7 +728,7 @@ function displayStaticAnalysis() {
     const resultData = {
       patient_id: parseInt(patientId),
       analysis_type: 'Pancreatic Tumor',
-      model_version: 'NeuroScan v3.2',
+      model_version: 'KRA0S v3.2',
       param_f: 0.28,
       param_d: 0.85,
       param_d_star: 0.12,
@@ -1239,10 +1239,16 @@ function initPatientSearch() {
 // ============================================
 // INITIALIZATION
 // ============================================
-document.addEventListener('DOMContentLoaded', () => {
+function initApp() {
   initUploadZone();
   initCarousel();
   initLoginForm();
   initPatientSearch();
   loadPatientSelect();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
