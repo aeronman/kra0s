@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 $host = 'localhost';
-$db   = 'neuroscan';
+$db   = 'kra0s';
 $user = 'root';
 $pass = '';
 $charset = 'utf8mb4';
