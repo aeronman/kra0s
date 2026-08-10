@@ -1,13 +1,5 @@
-// Navigation
-document.addEventListener('DOMContentLoaded', () => {
-  const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-  document.querySelectorAll('.nav-links a').forEach(link => {
-    const href = link.getAttribute('href');
-    if (href === currentPage || (currentPage === '' && href === 'index.html')) {
-      link.classList.add('active');
-    }
-  });
-});
+// Configuration
+const API_BASE = 'api';
 
 // Toast notifications
 function showToast(message, type = 'success') {
@@ -26,16 +18,125 @@ function showToast(message, type = 'success') {
   }, 3000);
 }
 
-// File upload handling
+// ============================================
+// NAVIGATION
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+  const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.nav-links a').forEach(link => {
+    const href = link.getAttribute('href');
+    if (href === currentPage || (currentPage === '' && href === 'index.html')) {
+      link.classList.add('active');
+    }
+  });
+});
+
+// ============================================
+// AUTH
+// ============================================
+async function login(email, password) {
+  const res = await fetch(`${API_BASE}/login.php`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  const data = await res.json();
+  if (data.success) {
+    localStorage.setItem('neuroscan_user', JSON.stringify(data.user));
+    return data.user;
+  }
+  throw new Error(data.message || 'Login failed');
+}
+
+function getCurrentUser() {
+  const user = localStorage.getItem('neuroscan_user');
+  return user ? JSON.parse(user) : null;
+}
+
+function isLoggedIn() {
+  return !!getCurrentUser();
+}
+
+// ============================================
+// PATIENTS API
+// ============================================
+async function loadPatients(search = '') {
+  const res = await fetch(`${API_BASE}/patients.php?search=${encodeURIComponent(search)}`);
+  const data = await res.json();
+  return data.success ? data.data : [];
+}
+
+async function addPatient(patientData) {
+  const res = await fetch(`${API_BASE}/patients.php`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(patientData)
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data.data;
+}
+
+// ============================================
+// UPLOAD API
+// ============================================
+async function uploadImage(file, patientId) {
+  const formData = new FormData();
+  formData.append('image', file);
+  formData.append('patient_id', patientId);
+  const user = getCurrentUser();
+  if (user) formData.append('user_id', user.user_id);
+  
+  const res = await fetch(`${API_BASE}/upload.php`, {
+    method: 'POST',
+    body: formData
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data.data;
+}
+
+// ============================================
+// ANALYSIS API
+// ============================================
+async function saveAnalysisResult(resultData) {
+  const res = await fetch(`${API_BASE}/analysis.php`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(resultData)
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data.data;
+}
+
+async function loadAnalysisResults(patientId) {
+  const res = await fetch(`${API_BASE}/analysis.php?patient_id=${patientId}`);
+  const data = await res.json();
+  return data.success ? data.data : [];
+}
+
+async function loadAnalysisResult(runId) {
+  const res = await fetch(`${API_BASE}/analysis.php?run_id=${runId}`);
+  const data = await res.json();
+  return data.success ? data.data : null;
+}
+
+// ============================================
+// FILE UPLOAD HANDLING
+// ============================================
 function initUploadZone() {
   const uploadZone = document.getElementById('uploadZone');
   const fileInput = document.getElementById('mriFile');
   const preview = document.getElementById('imagePreview');
   const analysisSection = document.getElementById('analysisSection');
+  const patientSelect = document.getElementById('patientSelect');
   
   if (!uploadZone) return;
   
-  uploadZone.addEventListener('click', () => fileInput.click());
+  uploadZone.addEventListener('click', (e) => {
+    if (e.target.tagName !== 'A') fileInput.click();
+  });
   
   uploadZone.addEventListener('dragover', (e) => {
     e.preventDefault();
@@ -61,28 +162,37 @@ function initUploadZone() {
     }
   });
   
-  function handleFile(file) {
-    if (!file.type.startsWith('image/')) {
-      showToast('Please upload an image file', 'error');
+  async function handleFile(file) {
+    const patientId = patientSelect ? patientSelect.value : null;
+    if (!patientId) {
+      showToast('Please select a patient first', 'error');
       return;
     }
     
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      preview.src = e.target.result;
-      preview.classList.remove('hidden');
-      uploadZone.classList.add('hidden');
-      analysisSection.classList.remove('hidden');
-      
-      // Show loading state
-      analysisSection.innerHTML = '<div class="spinner"></div>';
-      
-      // Simulate analysis with static values
-      setTimeout(() => {
-        displayStaticAnalysis();
-      }, 1500);
-    };
-    reader.readAsDataURL(file);
+    // Show preview for image files
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        preview.src = e.target.result;
+        preview.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    uploadZone.classList.add('hidden');
+    analysisSection.classList.remove('hidden');
+    analysisSection.innerHTML = '<div class="spinner"></div><p style="text-align: center; margin-top: 1rem;">Analyzing scan with AI model...</p>';
+    
+    try {
+      await uploadImage(file, patientId);
+      showToast('Image uploaded successfully');
+    } catch (err) {
+      showToast('Upload failed: ' + err.message, 'error');
+    }
+    
+    setTimeout(() => {
+      displayStaticAnalysis();
+    }, 1500);
   }
 }
 
@@ -93,7 +203,7 @@ function displayStaticAnalysis() {
     id: '001',
     age: 64,
     sex: 'Male',
-    scanDate: '2024-12-15'
+    scanDate: new Date().toISOString().split('T')[0]
   };
   
   const parametricData = [
@@ -107,18 +217,12 @@ function displayStaticAnalysis() {
     betti1Count: 42,
     complexity: 'High',
     signatures: [
-      { x: 8, y: 92, type: 'tumor' },
-      { x: 15, y: 85, type: 'tumor' },
-      { x: 22, y: 78, type: 'tumor' },
-      { x: 30, y: 70, type: 'tumor' },
-      { x: 38, y: 65, type: 'tumor' },
-      { x: 45, y: 60, type: 'tumor' },
-      { x: 52, y: 55, type: 'tumor' },
-      { x: 60, y: 50, type: 'tumor' },
-      { x: 68, y: 45, type: 'tumor' },
-      { x: 75, y: 40, type: 'tumor' },
-      { x: 82, y: 35, type: 'tumor' },
-      { x: 90, y: 30, type: 'tumor' }
+      { x: 8, y: 92, type: 'tumor' }, { x: 15, y: 85, type: 'tumor' },
+      { x: 22, y: 78, type: 'tumor' }, { x: 30, y: 70, type: 'tumor' },
+      { x: 38, y: 65, type: 'tumor' }, { x: 45, y: 60, type: 'tumor' },
+      { x: 52, y: 55, type: 'tumor' }, { x: 60, y: 50, type: 'tumor' },
+      { x: 68, y: 45, type: 'tumor' }, { x: 75, y: 40, type: 'tumor' },
+      { x: 82, y: 35, type: 'tumor' }, { x: 90, y: 30, type: 'tumor' }
     ]
   };
   
@@ -148,7 +252,6 @@ function displayStaticAnalysis() {
   };
   
   analysisSection.innerHTML = `
-    
     <div class="patient-info-bar">
       <div class="patient-info-item">
         <div class="patient-info-label">Patient ID</div>
@@ -331,6 +434,42 @@ function displayStaticAnalysis() {
       }, 20);
     }
   }, 300);
+  
+  // Save to database
+  const patientId = patientSelect ? patientSelect.value : null;
+  if (patientId) {
+    const resultData = {
+      patient_id: parseInt(patientId),
+      analysis_type: 'Pancreatic Tumor',
+      model_version: 'NeuroScan v3.2',
+      param_f: 0.28,
+      param_d: 0.85,
+      param_d_star: 0.12,
+      param_k: 0.92,
+      betti1_count: 42,
+      topological_complexity: 'High',
+      persistence_signatures: persistenceData.signatures,
+      tumor_diameter_cm: 2.80,
+      tumor_volume_cm3: 14.20,
+      tumor_volume_percent: '12% of Pancreatic Head',
+      kras_classification: 'G12D',
+      kras_confidence: 94,
+      kras_alternatives: { G12D: 94, G12V: 8, 'Wild-type': 3 },
+      r0_resectability_pct: 45,
+      is_resectable: 1,
+      smv_proximity_mm: 2.00,
+      smv_proximity_risk: 'High',
+      surgical_finding: surgicalData.finding,
+      confidence_level: 90,
+      confidence_reason: confidenceData.reason
+    };
+    
+    saveAnalysisResult(resultData).then(() => {
+      showToast('Analysis results saved to database');
+    }).catch(err => {
+      console.error('Failed to save analysis:', err);
+    });
+  }
 }
 
 function resetUpload() {
@@ -346,7 +485,30 @@ function resetUpload() {
   fileInput.value = '';
 }
 
-// Carousel
+// ============================================
+// PATIENT SELECT LOADER
+// ============================================
+async function loadPatientSelect() {
+  const select = document.getElementById('patientSelect');
+  if (!select) return;
+  
+  try {
+    const patients = await loadPatients();
+    if (patients.length === 0) {
+      select.innerHTML = '<option value="">No patients available. Add one in Patients tab.</option>';
+      return;
+    }
+    
+    select.innerHTML = '<option value="">-- Select a patient --</option>' +
+      patients.map(p => `<option value="${p.patient_id}">#${p.patient_code} - ${p.full_name}</option>`).join('');
+  } catch (err) {
+    console.error('Failed to load patients:', err);
+  }
+}
+
+// ============================================
+// CAROUSEL
+// ============================================
 function initCarousel() {
   const track = document.getElementById('carouselTrack');
   const dots = document.querySelectorAll('.carousel-dot');
@@ -382,19 +544,20 @@ function initCarousel() {
     });
   });
   
-  // Auto-advance
   setInterval(() => {
     currentIndex = (currentIndex + 1) % totalSlides;
     updateCarousel();
   }, 5000);
 }
 
-// Login form
+// ============================================
+// LOGIN FORM
+// ============================================
 function initLoginForm() {
   const form = document.getElementById('loginForm');
   if (!form) return;
   
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
@@ -404,45 +567,69 @@ function initLoginForm() {
       return;
     }
     
-    // Simulate login
     const btn = form.querySelector('button[type="submit"]');
     const originalText = btn.textContent;
     btn.textContent = 'Signing in...';
     btn.disabled = true;
     
-    setTimeout(() => {
+    try {
+      await login(email, password);
       showToast('Login successful! Redirecting...');
-      btn.textContent = originalText;
-      btn.disabled = false;
       setTimeout(() => {
         window.location.href = 'index.html';
       }, 1000);
-    }, 1500);
+    } catch (err) {
+      showToast(err.message, 'error');
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
   });
 }
 
-// Patient table search
+// ============================================
+// PATIENT TABLE SEARCH
+// ============================================
 function initPatientSearch() {
   const searchInput = document.getElementById('patientSearch');
   const table = document.getElementById('patientTable');
   
   if (!searchInput || !table) return;
   
-  searchInput.addEventListener('input', (e) => {
+  searchInput.addEventListener('input', async (e) => {
     const term = e.target.value.toLowerCase();
     const rows = table.querySelectorAll('tbody tr');
     
-    rows.forEach(row => {
-      const text = row.textContent.toLowerCase();
-      row.style.display = text.includes(term) ? '' : 'none';
-    });
+    if (term.length < 2) {
+      rows.forEach(row => row.style.display = '');
+      return;
+    }
+    
+    try {
+      const patients = await loadPatients(term);
+      if (patients.length === 0) {
+        rows.forEach(row => row.style.display = 'none');
+        return;
+      }
+      
+      rows.forEach(row => {
+        const code = row.cells[0].textContent.toLowerCase();
+        const name = row.cells[1].textContent.toLowerCase();
+        const diagnosis = row.cells[5].textContent.toLowerCase();
+        row.style.display = (code.includes(term) || name.includes(term) || diagnosis.includes(term)) ? '' : 'none';
+      });
+    } catch (err) {
+      console.error('Search failed:', err);
+    }
   });
 }
 
-// Initialize all features
+// ============================================
+// INITIALIZATION
+// ============================================
 document.addEventListener('DOMContentLoaded', () => {
   initUploadZone();
   initCarousel();
   initLoginForm();
   initPatientSearch();
+  loadPatientSelect();
 });

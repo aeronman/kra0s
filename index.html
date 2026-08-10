@@ -38,15 +38,23 @@
     </div>
     
     <div class="card">
+      <div class="form-group">
+        <label for="patientSelect">Select Patient</label>
+        <select id="patientSelect" required>
+          <option value="">-- Select a patient --</option>
+        </select>
+        <a href="patients.html" style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">+ Add New Patient</a>
+      </div>
+      
       <div id="uploadZone" class="upload-zone">
         <div class="upload-icon">📁</div>
         <div class="upload-text">
-          <strong>Click to upload</strong> or drag and drop your MRI image here
+          <strong>Click to upload</strong> or drag and drop your DICOM MRI image here
         </div>
         <div class="upload-text" style="font-size: 0.85rem;">
-          Supported formats: DICOM, PNG, JPG, JPEG (Max 50MB)
+          Supported formats: DICOM, NIfTI, PNG, JPG, JPEG (Max 50MB)
         </div>
-        <input type="file" id="mriFile" accept="image/*" style="display: none;">
+        <input type="file" id="mriFile" accept=".dcm,.nii,.nii.gz,image/*" style="display: none;">
       </div>
       
       <img id="imagePreview" class="image-preview hidden" alt="MRI Preview">
@@ -106,5 +114,17 @@
   </footer>
   
   <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const patientId = params.get('patient');
+      if (patientId) {
+        const select = document.getElementById('patientSelect');
+        if (select) {
+          select.value = patientId;
+        }
+      }
+    });
+  </script>
 </body>
 </html>
