@@ -173,6 +173,233 @@
       localStorage.removeItem('neuroscan_user');
       window.location.href = 'login.html';
     }
+    
+    async function loadPatients(search = '') {
+      const tbody = document.getElementById('patientTableBody');
+      try {
+        const patients = await fetch(`api/patients.php?search=${encodeURIComponent(search)}`).then(r => r.json());
+        if (patients.success && patients.data.length > 0) {
+          tbody.innerHTML = patients.data.map(p => `
+            <tr>
+              <td>#${p.patient_code}</td>
+              <td>${p.full_name}</td>
+              <td>${p.age || 'N/A'}</td>
+              <td>${p.gender}</td>
+              <td>${p.created_at ? new Date(p.created_at).toLocaleDateString() : 'N/A'}</td>
+              <td>${p.diagnosis || 'N/A'}</td>
+              <td>${statusBadge(p.status)}</td>
+              <td>
+                <button class="btn btn-sm btn-secondary" onclick="viewAnalysis(${p.patient_id}, '${p.patient_code}')">Analysis</button>
+                <button class="btn btn-sm btn-primary" onclick="viewPatient(${p.patient_id})">View</button>
+              </td>
+            </tr>
+          `).join('');
+          
+          updateStats(patients.data);
+        } else {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">No patients found. Add your first patient to get started.</td></tr>';
+        }
+      } catch (err) {
+        console.error('Failed to load patients:', err);
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--danger);">Failed to load patients. Ensure API is running.</td></tr>';
+      }
+    }
+    
+    function statusBadge(status) {
+      const map = {
+        'Normal': 'badge-success',
+        'Follow-up': 'badge-warning',
+        'Review': 'badge-danger',
+        'Critical': 'badge-danger'
+      };
+      return `<span class="badge ${map[status] || 'badge-success'}">${status}</span>`;
+    }
+    
+    function updateStats(patients) {
+      const total = patients.length;
+      const now = new Date();
+      const thisMonth = patients.filter(p => {
+        const d = new Date(p.created_at);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      }).length;
+      const normal = patients.filter(p => p.status === 'Normal').length;
+      const review = patients.filter(p => p.status === 'Review' || p.status === 'Critical').length;
+      
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statMonth').textContent = thisMonth;
+      document.getElementById('statNormal').textContent = total > 0 ? Math.round((normal / total) * 100) + '%' : '0%';
+      document.getElementById('statReview').textContent = total > 0 ? Math.round((review / total) * 100) + '%' : '0%';
+    }
+    
+    // Search
+    document.getElementById('patientSearch').addEventListener('input', (e) => {
+      loadPatients(e.target.value);
+    });
+    
+    // Add Patient Modal
+    function showAddPatientModal() {
+      document.getElementById('addPatientModal').style.display = 'flex';
+    }
+    
+    function closeAddPatientModal() {
+      document.getElementById('addPatientModal').style.display = 'none';
+    }
+    
+    document.getElementById('addPatientForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        full_name: document.getElementById('pName').value,
+        age: document.getElementById('pAge').value || null,
+        gender: document.getElementById('pGender').value,
+        date_of_birth: document.getElementById('pDob').value || null,
+        diagnosis: document.getElementById('pDiagnosis').value || null,
+        status: document.getElementById('pStatus').value,
+        notes: document.getElementById('pNotes').value || null
+      };
+      
+      try {
+        const res = await fetch('api/patients.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        }).then(r => r.json());
+        
+        if (res.success) {
+          showToast('Patient added successfully');
+          closeAddPatientModal();
+          document.getElementById('addPatientForm').reset();
+          loadPatients();
+        } else {
+          showToast(res.message || 'Failed to add patient', 'error');
+        }
+      } catch (err) {
+        showToast('Error adding patient', 'error');
+      }
+    });
+    
+    // Analysis Modal
+    async function viewAnalysis(patientId, patientCode) {
+      const modal = document.getElementById('analysisModal');
+      const content = document.getElementById('analysisModalContent');
+      modal.style.display = 'flex';
+      content.innerHTML = '<p style="text-align: center; padding: 2rem;">Loading analysis history...</p>';
+      
+      try {
+        const res = await fetch(`api/analysis.php?patient_id=${patientId}`).then(r => r.json());
+        if (res.success && res.data.length > 0) {
+          content.innerHTML = res.data.map((a, i) => `
+            <div class="card" style="margin-bottom: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h4 style="margin: 0;">Analysis #${res.data.length - i} - ${a.analysis_type}</h4>
+                <span class="badge badge-success">${a.status || 'Completed'}</span>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div>
+                  <div style="font-size: 0.85rem; color: var(--text-muted);">Model Version</div>
+                  <div style="font-weight: 600;">${a.model_version || 'N/A'}</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.85rem; color: var(--text-muted);">Confidence Level</div>
+                  <div style="font-weight: 600; color: ${a.confidence_level >= 80 ? 'var(--success)' : 'var(--warning)'};">${a.confidence_level || 'N/A'}%</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.85rem; color: var(--text-muted);">Completed</div>
+                  <div style="font-weight: 600;">${a.completed_at ? new Date(a.completed_at).toLocaleString() : 'N/A'}</div>
+                </div>
+              </div>
+              <div style="margin-top: 1rem;">
+                <button class="btn btn-sm btn-primary" onclick="loadAnalysisDetail(${a.run_id})">View Full Report</button>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          content.innerHTML = `<p style="text-align: center; padding: 2rem;">No analysis results yet for #${patientCode}. <a href="index.html">Run Analysis</a></p>`;
+        }
+      } catch (err) {
+        content.innerHTML = '<p style="text-align: center; padding: 2rem; color: var(--danger);">Failed to load analysis history.</p>';
+      }
+    }
+    
+    function closeAnalysisModal() {
+      document.getElementById('analysisModal').style.display = 'none';
+    }
+    
+    async function loadAnalysisDetail(runId) {
+      const content = document.getElementById('analysisModalContent');
+      content.innerHTML = '<p style="text-align: center; padding: 2rem;">Loading report...</p>';
+      
+      try {
+        const res = await fetch(`api/analysis.php?run_id=${runId}`).then(r => r.json());
+        if (res.success) {
+          const d = res.data;
+          content.innerHTML = `
+            <div class="patient-info-bar" style="margin-bottom: 1.5rem;">
+              <div class="patient-info-item">
+                <div class="patient-info-label">Patient ID</div>
+                <div class="patient-info-value highlight">#${d.patient_code}</div>
+              </div>
+              <div class="patient-info-item">
+                <div class="patient-info-label">Age / Sex</div>
+                <div class="patient-info-value">${d.age} / ${d.gender}</div>
+              </div>
+            </div>
+            
+            <h3 class="analysis-section-title">Tumor Morphology</h3>
+            <div class="morphology-grid" style="margin-bottom: 1.5rem;">
+              <div class="morphology-card">
+                <div class="morphology-header"><div class="morphology-title">Diameter</div></div>
+                <div class="morphology-value">${d.tumor_diameter_cm} cm</div>
+              </div>
+              <div class="morphology-card">
+                <div class="morphology-header"><div class="morphology-title">Volume</div></div>
+                <div class="morphology-value">${d.tumor_volume_cm3} cm³</div>
+                <div class="morphology-range">${d.tumor_volume_percent}</div>
+              </div>
+            </div>
+            
+            <h3 class="analysis-section-title">Molecular Phenotype</h3>
+            <div class="molecular-container" style="margin-bottom: 1.5rem;">
+              <div class="kras-badge positive">KRAS-${d.kras_classification} Positive (${d.kras_confidence}% Confidence)</div>
+            </div>
+            
+            <h3 class="analysis-section-title">Surgical Metrics</h3>
+            <div class="surgical-grid" style="margin-bottom: 1.5rem;">
+              <div class="surgical-card">
+                <div class="surgical-header">
+                  <div class="surgical-title">R0 Resection Probability</div>
+                  <span class="surgical-badge badge-${d.is_resectable ? 'warning' : 'danger'}">${d.is_resectable ? 'Resectable' : 'Unresectable'}</span>
+                </div>
+                <div class="surgical-value">${d.r0_resectability_pct}%</div>
+              </div>
+              <div class="surgical-card">
+                <div class="surgical-header">
+                  <div class="surgical-title">SMV Proximity</div>
+                  <span class="surgical-badge badge-danger">${d.smv_proximity_risk} Risk</span>
+                </div>
+                <div class="surgical-value">${d.smv_proximity_mm} mm</div>
+              </div>
+            </div>
+            
+            <h3 class="analysis-section-title">Overall Confidence</h3>
+            <div class="confidence-section">
+              <div class="confidence-reason"><strong>Reason:</strong> ${d.confidence_reason}</div>
+              <div class="confidence-detail-item" style="margin-top: 1rem;">
+                <div class="confidence-detail-label">Confidence Level</div>
+                <div class="confidence-detail-value">${d.confidence_level}%</div>
+              </div>
+            </div>
+          `;
+        } else {
+          content.innerHTML = '<p style="text-align: center; padding: 2rem;">Report not found.</p>';
+        }
+      } catch (err) {
+        content.innerHTML = '<p style="text-align: center; padding: 2rem; color: var(--danger);">Failed to load report.</p>';
+      }
+    }
+    
+    function viewPatient(patientId) {
+      window.location.href = `index.html?patient=${patientId}`;
+    }
   </script>
 </body>
 </html>
