@@ -38,12 +38,18 @@
     </div>
     
     <div class="card">
-      <div class="form-group">
-        <label for="patientSelect">Select Patient</label>
-        <select id="patientSelect" required>
-          <option value="">-- Select a patient --</option>
-        </select>
-        <a href="patients.html" style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">+ Add New Patient</a>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="patientSelect">Select Patient</label>
+          <select id="patientSelect" required>
+            <option value="">-- Select a patient --</option>
+          </select>
+          <a href="patients.html" style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">+ Add New Patient</a>
+        </div>
+        <div class="form-group">
+          <label for="openaiKey">OpenAI API Key <span style="font-weight: 400; color: var(--text-muted);">(optional)</span></label>
+          <input type="password" id="openaiKey" placeholder="sk-..." style="font-family: monospace;">
+        </div>
       </div>
       
       <div id="uploadZone" class="upload-zone">

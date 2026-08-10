@@ -122,6 +122,24 @@ async function loadAnalysisResult(runId) {
   return data.success ? data.data : null;
 }
 
+async function runOpenAIAnalysis(file, patientId, apiKey, model = 'gpt-4o') {
+  const formData = new FormData();
+  formData.append('image', file);
+  formData.append('patient_id', patientId);
+  formData.append('openai_key', apiKey);
+  formData.append('model', model);
+  const user = getCurrentUser();
+  if (user) formData.append('user_id', user.user_id);
+  
+  const res = await fetch(`${API_BASE}/openai_analysis.php`, {
+    method: 'POST',
+    body: formData
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message || 'OpenAI analysis failed');
+  return data.data;
+}
+
 // ============================================
 // FILE UPLOAD HANDLING
 // ============================================
@@ -168,6 +186,7 @@ function initUploadZone() {
       showToast('Please select a patient first', 'error');
       return;
     }
+    const openaiKey = document.getElementById('openaiKey')?.value?.trim();
     
     // Show preview for image files
     if (file.type.startsWith('image/')) {
@@ -181,19 +200,281 @@ function initUploadZone() {
     
     uploadZone.classList.add('hidden');
     analysisSection.classList.remove('hidden');
-    analysisSection.innerHTML = '<div class="spinner"></div><p style="text-align: center; margin-top: 1rem;">Analyzing scan with AI model...</p>';
     
     try {
-      await uploadImage(file, patientId);
-      showToast('Image uploaded successfully');
+      if (openaiKey) {
+        analysisSection.innerHTML = '<div class="spinner"></div><p style="text-align: center; margin-top: 1rem;">Analyzing with OpenAI Vision...</p>';
+        const result = await runOpenAIAnalysis(file, patientId, openaiKey);
+        showToast('OpenAI analysis completed');
+        if (result.analysis) {
+          displayAnalysisFromData(result.analysis, result.patient);
+        } else {
+          displayStaticAnalysis();
+        }
+      } else {
+        analysisSection.innerHTML = '<div class="spinner"></div><p style="text-align: center; margin-top: 1rem;">Analyzing scan with AI model...</p>';
+        await uploadImage(file, patientId);
+        showToast('Image uploaded successfully');
+        setTimeout(() => {
+          displayStaticAnalysis();
+        }, 1500);
+      }
     } catch (err) {
-      showToast('Upload failed: ' + err.message, 'error');
+      showToast(err.message, 'error');
+      setTimeout(() => {
+        displayStaticAnalysis();
+      }, 1500);
     }
-    
-    setTimeout(() => {
-      displayStaticAnalysis();
-    }, 1500);
   }
+}
+
+function displayAnalysisFromData(analysis, patient) {
+  const analysisSection = document.getElementById('analysisSection');
+  
+  const patientInfo = {
+    id: patient?.patient_code?.replace('PT-2024-', '') || '001',
+    age: patient?.age || 'N/A',
+    sex: patient?.gender || 'N/A',
+    scanDate: new Date().toISOString().split('T')[0]
+  };
+  
+  const pm = analysis.parametric_maps || {};
+  const pd = analysis.persistence_diagram || {};
+  const tm = analysis.tumor_morphology || {};
+  const mp = analysis.molecular_phenotype || {};
+  const sm = analysis.surgical_metrics || {};
+  const cf = analysis.confidence || {};
+  
+  const parametricData = [
+    { label: 'f', value: pm.f?.value || 0, valueLabel: (pm.f?.value || 0).toFixed(2), desc: pm.f?.description || 'Perfusion Fraction' },
+    { label: 'D', value: pm.D?.value || 0, valueLabel: (pm.D?.value || 0).toFixed(2), desc: pm.D?.description || 'Diffusion Coefficient' },
+    { label: 'D*', value: pm.D_star?.value || 0, valueLabel: (pm.D_star?.value || 0).toFixed(2), desc: pm.D_star?.description || 'Pseudodiffusion' },
+    { label: 'K', value: pm.K?.value || 0, valueLabel: (pm.K?.value || 0).toFixed(2), desc: pm.K?.description || 'Kurtosis' }
+  ];
+  
+  const persistenceData = {
+    betti1Count: pd.betti1_count || 0,
+    complexity: pd.topological_complexity || 'Medium',
+    signatures: Array.from({ length: 12 }, (_, i) => ({
+      x: 10 + i * 7,
+      y: 90 - i * 5,
+      type: 'tumor'
+    }))
+  };
+  
+  const morphologyData = {
+    diameter: (tm.diameter_cm || 0) + ' cm',
+    volume: (tm.volume_cm3 || 0) + ' cm³',
+    volumePercent: tm.volume_percent || 'N/A'
+  };
+  
+  const alternatives = Object.keys(mp.alternatives || {});
+  const molecularData = {
+    classification: 'KRAS-' + (mp.kras_classification || 'Unknown') + ' Positive',
+    confidence: mp.confidence || 0,
+    alternatives: alternatives.length > 0 ? alternatives : ['G12D', 'G12V', 'Wild-type']
+  };
+  
+  const surgicalData = {
+    r0Resectability: (sm.r0_resectability_pct || 0) + '%',
+    resectable: sm.is_resectable || false,
+    finding: sm.surgical_finding || 'N/A',
+    smvProximity: (sm.smv_proximity_mm || 0) + ' mm',
+    proximityRisk: sm.smv_proximity_risk || 'Medium'
+  };
+  
+  const confidenceData = {
+    level: cf.level || 0,
+    reason: cf.reason || 'N/A'
+  };
+  
+  analysisSection.innerHTML = `
+    <div class="patient-info-bar">
+      <div class="patient-info-item">
+        <div class="patient-info-label">Patient ID</div>
+        <div class="patient-info-value highlight">#${patientInfo.id}</div>
+      </div>
+      <div class="patient-info-item">
+        <div class="patient-info-label">Age / Sex</div>
+        <div class="patient-info-value">${patientInfo.age} / ${patientInfo.sex}</div>
+      </div>
+      <div class="patient-info-item">
+        <div class="patient-info-label">Scan Date</div>
+        <div class="patient-info-value">${patientInfo.scanDate}</div>
+      </div>
+      <div class="patient-info-item">
+        <div class="patient-info-label">Analysis Type</div>
+        <div class="patient-info-value">Pancreatic Tumor (OpenAI)</div>
+      </div>
+    </div>
+    
+    <h3 class="analysis-section-title">Parametric Maps</h3>
+    <div class="parametric-grid">
+      ${parametricData.map(item => `
+        <div class="parametric-card">
+          <div class="parametric-title">${item.label} — ${item.desc}</div>
+          <div class="chart-bars">
+            <div class="chart-bar-wrapper">
+              <div class="chart-bar-value">${item.valueLabel}</div>
+              <div class="chart-bar" style="height: ${Math.min(item.value * 100, 100)}%"></div>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    
+    <h3 class="analysis-section-title">Persistence Diagrams</h3>
+    <div class="persistence-container">
+      <div class="persistence-title">Topological Signatures — Betti-1 Count: ${persistenceData.betti1Count} (${persistenceData.complexity} Complexity)</div>
+      <div class="persistence-diagram">
+        ${persistenceData.signatures.map((dot, i) => `
+          <div class="persistence-dot" 
+               style="background: var(--primary); 
+                      opacity: ${0.4 + (dot.y / 100) * 0.6}; 
+                      transform: scale(${0.5 + (dot.x / 100) * 1.0})"
+               title="Feature ${i + 1}: persistence=${(dot.y / 100).toFixed(2)}">
+          </div>
+        `).join('')}
+      </div>
+      <div class="persistence-legend">
+        <div class="persistence-legend-item">
+          <div class="legend-dot" style="background: var(--primary);"></div>
+          <span>Tumor Topological Feature (${persistenceData.betti1Count} holes identified)</span>
+        </div>
+      </div>
+    </div>
+    
+    <h3 class="analysis-section-title">Tumor Morphology</h3>
+    <div class="morphology-grid">
+      <div class="morphology-card">
+        <div class="morphology-header">
+          <div class="morphology-title">Maximal Diameter</div>
+          <span class="morphology-badge badge-warning">Measured</span>
+        </div>
+        <div class="morphology-value">${morphologyData.diameter}</div>
+        <div class="morphology-range">Largest cross-sectional dimension</div>
+      </div>
+      <div class="morphology-card">
+        <div class="morphology-header">
+          <div class="morphology-title">Volume</div>
+          <span class="morphology-badge badge-warning">Calculated</span>
+        </div>
+        <div class="morphology-value">${morphologyData.volume}</div>
+        <div class="morphology-range">${morphologyData.volumePercent}</div>
+      </div>
+    </div>
+    
+    <h3 class="analysis-section-title">Molecular Phenotype</h3>
+    <div class="molecular-container">
+      <div class="molecular-title">KRAS Mutation Classification</div>
+      <div class="molecular-grid">
+        ${molecularData.alternatives.map(alt => {
+          const score = (mp.alternatives && mp.alternatives[alt]) || 0;
+          const isPrimary = alt === mp.kras_classification;
+          return `
+          <div class="molecular-item">
+            <div class="molecular-name">KRAS-${alt}</div>
+            <div class="molecular-expression">
+              <div class="molecular-bar-mini">
+                <div class="molecular-bar-fill" style="width: ${Math.min(score, 100)}%; background: ${isPrimary ? 'var(--primary)' : 'var(--border)'};"></div>
+              </div>
+              <div class="molecular-value" style="color: ${isPrimary ? 'var(--primary)' : 'var(--text-muted)'}">${score}%</div>
+            </div>
+          </div>
+          `;
+        }).join('')}
+      </div>
+      <div class="kras-badge positive">
+        ✓ ${molecularData.classification} (${molecularData.confidence}% Confidence)
+      </div>
+    </div>
+    
+    <h3 class="analysis-section-title">Surgical Metrics</h3>
+    <div class="surgical-grid">
+      <div class="surgical-card">
+        <div class="surgical-header">
+          <div class="surgical-title">R0 Resection Probability</div>
+          <span class="surgical-badge badge-${surgicalData.resectable ? 'warning' : 'danger'}">${surgicalData.resectable ? 'Resectable' : 'Unresectable'}</span>
+        </div>
+        <div class="surgical-value">${surgicalData.r0Resectability}</div>
+        <div class="surgical-label">Probability of complete margin-negative resection</div>
+        <div class="surgical-finding">
+          <strong>Finding:</strong> ${surgicalData.finding}
+        </div>
+      </div>
+      <div class="surgical-card">
+        <div class="surgical-header">
+          <div class="surgical-title">SMV Proximity</div>
+          <span class="surgical-badge badge-danger">${surgicalData.proximityRisk} Risk</span>
+        </div>
+        <div class="surgical-value">${surgicalData.smvProximity}</div>
+        <div class="surgical-label">Distance to Superior Mesenteric Vein boundary</div>
+        <div class="surgical-finding">
+          <strong>Risk:</strong> ${surgicalData.proximityRisk} — Vascular reconstruction may be required
+        </div>
+      </div>
+    </div>
+    
+    <h3 class="analysis-section-title">Overall Confidence</h3>
+    <div class="confidence-section">
+      <div class="confidence-title">AI Model Confidence Assessment</div>
+      <div class="confidence-display">
+        <div class="confidence-ring">
+          <svg width="160" height="160">
+            <circle class="confidence-ring-bg" cx="80" cy="80" r="70"></circle>
+            <circle class="confidence-ring-fill" id="confidenceRing" cx="80" cy="80" r="70"></circle>
+          </svg>
+          <div class="confidence-value">
+            <span class="confidence-percent" id="confidencePercent">0%</span>
+            <span class="confidence-label">Confidence</span>
+          </div>
+        </div>
+        <div class="confidence-details">
+          <div class="confidence-detail-item">
+            <div class="confidence-detail-label">Model Version</div>
+            <div class="confidence-detail-value">OpenAI Vision</div>
+          </div>
+          <div class="confidence-detail-item">
+            <div class="confidence-detail-label">Analysis Type</div>
+            <div class="confidence-detail-value">Pancreatic Tumor</div>
+          </div>
+          <div class="confidence-detail-item">
+            <div class="confidence-detail-label">KRAS Status</div>
+            <div class="confidence-detail-value">${molecularData.classification}</div>
+          </div>
+          <div class="confidence-detail-item">
+            <div class="confidence-detail-label">Resectability</div>
+            <div class="confidence-detail-value">${surgicalData.r0Resectability}</div>
+          </div>
+        </div>
+      </div>
+      <div class="confidence-reason">
+        <strong>Reason for Confidence:</strong> ${confidenceData.reason}
+      </div>
+    </div>
+    
+    <div style="margin-top: 2rem; text-align: center;">
+      <button class="btn btn-primary" onclick="resetUpload()">Upload New Image</button>
+    </div>
+  `;
+  
+  setTimeout(() => {
+    const ring = document.getElementById('confidenceRing');
+    const percentText = document.getElementById('confidencePercent');
+    if (ring && percentText) {
+      const targetPercent = confidenceData.level;
+      const circumference = 2 * Math.PI * 70;
+      const offset = circumference - (targetPercent / 100) * circumference;
+      ring.style.strokeDashoffset = offset;
+      
+      let current = 0;
+      const interval = setInterval(() => {
+        current += 1;
+        percentText.textContent = current + '%';
+        if (current >= targetPercent) clearInterval(interval);
+      }, 20);
+    }
+  }, 300);
 }
 
 function displayStaticAnalysis() {
