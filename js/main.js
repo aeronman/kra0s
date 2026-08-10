@@ -288,7 +288,7 @@ function displayStaticAnalysis() {
         <div class="confidence-details">
           <div class="confidence-detail-item">
             <div class="confidence-detail-label">Model Version</div>
-            <div class="confidence-detail-value">NeuroScan v3.2</div>
+            <div class="confidence-detail-value">KRA0S v3.2</div>
           </div>
           <div class="confidence-detail-item">
             <div class="confidence-detail-label">Training Samples</div>
