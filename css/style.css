@@ -1,18 +1,18 @@
 :root {
-  --primary: #2563eb;
-  --primary-dark: #1d4ed8;
-  --secondary: #0f172a;
-  --accent: #06b6d4;
-  --bg: #f8fafc;
-  --card: #ffffff;
-  --text: #1e293b;
-  --text-muted: #64748b;
-  --border: #e2e8f0;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  --primary: #8B5CF6;
+  --primary-dark: #7C3AED;
+  --secondary: #1E1B4B;
+  --accent: #A78BFA;
+  --bg: #FAF5FF;
+  --card: #FFFFFF;
+  --text: #1E1B4B;
+  --text-muted: #8B8BA7;
+  --border: #E9D5FF;
+  --success: #A78BFA;
+  --warning: #8B5CF6;
+  --danger: #4C1D95;
+  --shadow: 0 4px 6px -1px rgba(139,92,246,0.1), 0 2px 4px -2px rgba(139,92,246,0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(139,92,246,0.1), 0 4px 6px -4px rgba(139,92,246,0.1);
   --radius: 12px;
 }
 
@@ -144,7 +144,7 @@ button {
 }
 
 .btn-secondary:hover {
-  background: #1e293b;
+  background: #1E1B4B;
 }
 
 .btn-sm {
@@ -161,7 +161,7 @@ button {
 
 /* Hero Section */
 .hero {
-  background: linear-gradient(135deg, var(--secondary) 0%, #1e3a5f 100%);
+  background: linear-gradient(135deg, var(--secondary) 0%, #2E1065 100%);
   color: white;
   padding: 4rem 2rem;
   text-align: center;
@@ -207,13 +207,13 @@ button {
   text-align: center;
   cursor: pointer;
   transition: all 0.3s;
-  background: #fafbfc;
+  background: #FAF5FF;
 }
 
 .upload-zone:hover,
 .upload-zone.dragover {
   border-color: var(--primary);
-  background: #eff6ff;
+  background: #F5F3FF;
 }
 
 .upload-zone.dragover {
@@ -244,7 +244,7 @@ button {
 }
 
 .analysis-item {
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(135deg, #FAF5FF 0%, #F5F3FF 100%);
   border-radius: var(--radius);
   padding: 1.5rem;
   border-left: 4px solid var(--primary);
@@ -284,7 +284,7 @@ button {
 
 /* Parametric Maps */
 .patient-info-bar {
-  background: linear-gradient(135deg, var(--secondary) 0%, #1e3a5f 100%);
+  background: linear-gradient(135deg, var(--secondary) 0%, #2E1065 100%);
   color: white;
   border-radius: var(--radius);
   padding: 1.5rem 2rem;
@@ -512,7 +512,7 @@ button {
 }
 
 .surgical-card {
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(135deg, #FAF5FF 0%, #F5F3FF 100%);
   border-radius: var(--radius);
   padding: 1.5rem;
   border: 1px solid var(--border);
@@ -596,7 +596,7 @@ button {
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  background: #f8fafc;
+  background: #FAF5FF;
   border-radius: 8px;
   border: 1px solid var(--border);
 }
@@ -644,18 +644,18 @@ button {
 }
 
 .kras-badge.positive {
-  background: #d1fae5;
-  color: #065f46;
+  background: #E9D5FF;
+  color: #5B21B6;
 }
 
 .kras-badge.wild-type {
-  background: #f1f5f9;
+  background: #F5F3FF;
   color: var(--text-muted);
 }
 
 /* Overall Confidence */
 .confidence-section {
-  background: linear-gradient(135deg, var(--secondary) 0%, #1e3a5f 100%);
+  background: linear-gradient(135deg, var(--secondary) 0%, #2E1065 100%);
   border-radius: var(--radius);
   padding: 2.5rem;
   color: white;
@@ -809,7 +809,7 @@ th {
 }
 
 tr:hover {
-  background: #f8fafc;
+  background: #FAF5FF;
 }
 
 /* Carousel */
@@ -881,7 +881,7 @@ th {
 }
 
 tr:hover {
-  background: #f8fafc;
+  background: #FAF5FF;
 }
 
 .badge {
@@ -893,18 +893,18 @@ tr:hover {
 }
 
 .badge-success {
-  background: #d1fae5;
-  color: #065f46;
+  background: #E9D5FF;
+  color: #5B21B6;
 }
 
 .badge-warning {
-  background: #fef3c7;
-  color: #92400e;
+  background: #F5D0FE;
+  color: #A21CAF;
 }
 
 .badge-danger {
-  background: #fee2e2;
-  color: #991b1b;
+  background: #DDD6FE;
+  color: #4C1D95;
 }
 
 /* Carousel */
@@ -925,7 +925,7 @@ tr:hover {
 }
 
 .researcher-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
   color: white;
   border-radius: var(--radius);
   padding: 2.5rem;
@@ -1022,7 +1022,7 @@ tr:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--secondary) 0%, #1e3a5f 100%);
+  background: linear-gradient(135deg, var(--secondary) 0%, #2E1065 100%);
   padding: 2rem;
 }
 
